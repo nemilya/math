@@ -104,6 +104,7 @@ export default async function myAdventure(s) {
 | `wait(ms)` | pause |
 | `celebrate(x, y)`, `sparkle(x, y)`, `mood('thinking')` | Lumo's emotions |
 | `record(starId, { prompt })` | the child records an explanation (skipped if the microphone is off/unavailable) |
+| `help(fn)` | a "?" button in the top-left corner for this scene — e.g. show the rules of a game again, with pictures |
 | `micAvailable()` | can the child record here? — to show or hide a microphone button |
 | `complete()`, `unlock(id)` | light the star, open a question |
 | `remember(k, v)`, `recall(k)` | remember something about the child (e.g. their guess) |

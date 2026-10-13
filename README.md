@@ -98,9 +98,14 @@ For development: `?lang=ru` (language), `?fast` (no voice, fast, subtitles — f
 * [**Writing an adventure**](docs/AUTHORING.md) — for authors: dramaturgy, template, checklist
 * [**Roadmap**](docs/ROADMAP.md) — directions of growth and a bank of adventure ideas
 
+## License
+
+[MIT](LICENSE) — the code, the adventures, the lines and the generated voice clips. Use it, change it,
+build your own adventures on it. The gear icon is from [Feather Icons](https://feathericons.com) (MIT).
+
 ## What's there already
 
-* three adventures straight from the essay: a triangle in a box, the corner in a semicircle, the "last pebble" game;
+* four adventures straight from the essay: a triangle in a box, a pyramid in a cube (in 3D — the question the essay ends with), the corner in a semicircle, the "last pebble" game;
 * a sky of questions that grows: open questions appear after adventures;
 * Lumo's voice — neural TTS for every line, English and Russian;
 * three age bands: Lumo talks more simply with little ones and more precisely, with history, with older ones;

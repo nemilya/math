@@ -35,6 +35,8 @@ for (const f of walk(WEB).filter((x) => KEEP.some((r) => r.test(x)))) {
   n += 1;
   bytes += statSync(join(WEB, f)).size;
 }
+cpSync(join(ROOT, 'LICENSE'), join(OUT, 'LICENSE'));
+n += 1;
 const zip = `${OUT}.zip`;
 rmSync(zip, { force: true });
 try {

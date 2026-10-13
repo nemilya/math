@@ -20,8 +20,8 @@ const abortError = () => new DOMException('scene closed', 'AbortError');
 let micUnavailable = false;
 
 export class Scene {
-  constructor({ ns, stage, dock, keeper, voice, i18n, store, signal, speed = 1 }) {
-    Object.assign(this, { ns, stage, dock, keeper, voice, i18n, store, signal, speed });
+  constructor({ ns, stage, dock, keeper, voice, i18n, store, signal, speed = 1, helpButton = null }) {
+    Object.assign(this, { ns, stage, dock, keeper, voice, i18n, store, signal, speed, helpButton });
     this.root = el('g', { class: `scene scene-${ns}` }, stage);
     this.lastActivity = performance.now();
     this.cleanups = [];
@@ -417,6 +417,23 @@ export class Scene {
         await this.say('common:record.after');
       }
     }
+  }
+
+  // A "?" in the top-left corner for the whole scene: e.g. show the rules of a game again.
+  help(fn) {
+    const b = this.helpButton;
+    if (!b) return;
+    const h = () => {
+      sfx.tap();
+      this._act();
+      fn();
+    };
+    b.hidden = false;
+    b.addEventListener('click', h);
+    this.cleanups.push(() => {
+      b.hidden = true;
+      b.removeEventListener('click', h);
+    });
   }
 
   // ---------- progress ----------

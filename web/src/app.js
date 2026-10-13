@@ -147,7 +147,7 @@ function newScene(ns) {
   ctl?.abort();
   voice.stop();
   ctl = new AbortController();
-  return new Scene({ ns, stage, dock, keeper, voice, i18n, store, speed, signal: ctl.signal });
+  return new Scene({ ns, stage, dock, keeper, voice, i18n, store, speed, signal: ctl.signal, helpButton: $('btn-help') });
 }
 
 const isAbort = (e) => e?.name === 'AbortError';

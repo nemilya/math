@@ -22,6 +22,7 @@ web/
     recorder.js         the child's voice: recording and storage (on this device only)
     store.js            what the child explored + settings (localStorage)
     sfx.js              little sounds synthesised on the fly (WebAudio)
+    space.js            tiny 3D: a camera you can turn, projection, solids drawn back to front
     svg.js, ui.js       small helpers: geometry, icons
   content/              everything that grows
     stars.js            the sky map: which stars are where and what appears after what

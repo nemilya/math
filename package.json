@@ -2,6 +2,7 @@
   "name": "lumo-math",
   "private": true,
   "description": "Lumo — Sky of Questions. Humane mathematics for children, inspired by Paul Lockhart's \"A Mathematician's Lament\".",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs",

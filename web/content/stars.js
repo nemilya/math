@@ -3,7 +3,8 @@
 // It is a map, not a ladder: stars are linked by "this question leads to that one",
 // never by "you must pass this first". There are no levels and no locks on adventures.
 //
-//   adventure — an interactive journey with Lumo (content/<id>/script.js)
+//   adventure — an interactive journey with Lumo (content/<id>/script.js). With `from`, it
+//               appears once that star is lit: a question that has grown into an adventure.
 //   question  — an open question. No answer is given; the child can record ideas.
 //               `from` makes it appear after that adventure (Lumo "hangs it in the sky").
 //   far       — questions from the edge of the sky: adventures still to be built.
@@ -18,7 +19,14 @@ export const STARS = [
     load: () => import('./triangle-in-box/script.js'),
   },
   { id: 'slanted-triangle', kind: 'question', at: [150, 180], from: 'triangle-in-box' },
-  { id: 'pyramid-in-cube', kind: 'question', at: [345, 150], from: 'triangle-in-box' },
+  {
+    id: 'pyramid-in-cube',
+    kind: 'adventure',
+    at: [345, 150],
+    from: 'triangle-in-box',
+    load: () => import('./pyramid-in-cube/script.js'),
+  },
+  { id: 'cone-in-cylinder', kind: 'question', at: [475, 85], from: 'pyramid-in-cube' },
 
   {
     id: 'semicircle',

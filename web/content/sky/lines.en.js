@@ -44,10 +44,15 @@ export default {
     middle: 'If the tip of the triangle leaves the box, it takes up less than half. But how much? We need a new idea.',
     big: "If the top vertex goes past the base, the triangle takes up less than half its rectangle. What fraction? A clue: try adding instead of cutting.",
   },
-  'pyramid-in-cube.ask': {
-    small: 'How much space does a little pyramid take up inside a cube?',
-    middle: 'A triangle takes up half of its box. How much of a cube does a pyramid inside it take up?',
-    big: 'A triangle takes up half of its rectangle. What fraction of a cube does a pyramid with the same base and height take up?',
+  'pyramid-in-cube.name': {
+    small: 'A little pyramid in a cube. How much space does it take up?',
+    middle: 'A pyramid in a cube. The triangle took up half its box — and the pyramid?',
+    big: 'A pyramid in a cube. What fraction of the volume does it take up?',
+  },
+  'cone-in-cylinder.ask': {
+    small: 'An ice-cream cone in a jar. How much space does it take up?',
+    middle: 'A cone inside a cylinder, like a jar. How much of it does the cone take up?',
+    big: 'A cone in a cylinder with the same base and height. What fraction of the volume does it take up?',
   },
   'corners-in-space.ask': {
     small: 'What if we are not on paper but in a room — where do the square corners live then?',

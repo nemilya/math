@@ -100,6 +100,14 @@ html, body {
 #topbar .langs button[aria-pressed="true"] { background: rgba(255, 196, 87, .3); opacity: 1; }
 #topbar .langs button:focus-visible, .btn:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
 
+#btn-help {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: 10px;
+  z-index: 6;
+  font: 700 24px/1 system-ui, sans-serif;
+}
+
 #subtitle {
   position: fixed;
   top: max(68px, calc(env(safe-area-inset-top) + 58px));
@@ -224,6 +232,18 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 
 .sparkle { fill: #fff2b8; }
 
+/* space: a glass cube and solids inside it (shaded per face by src/space.js) */
+.spin { cursor: grab; }
+.glass, .pyr, .slab { pointer-events: none; } /* drags on the cube turn it, like drags on the sky */
+.glass { fill: rgba(200, 215, 255, .05); stroke: rgba(245, 236, 215, .8); stroke-width: 2.5; stroke-linejoin: round; }
+.pyr { stroke-width: 2; stroke-linejoin: round; }
+.pyr.a { fill: #ffc457; stroke: #ffe1a0; }
+.pyr.b { fill: #4fc796; stroke: #a8f0cf; }
+.pyr.c { fill: #9a7cf0; stroke: #d6c8ff; }
+.slab { stroke-width: 1.2; stroke-linejoin: round; }
+.slab.a { fill: #ffc457; stroke: #fff0c8; }
+.slab.b { fill: #f29a3c; stroke: #ffe0b0; }
+
 /* ---------- pebbles ---------- */
 
 .pebble ellipse.stone { fill: url(#pebble); stroke: rgba(0, 0, 0, .25); stroke-width: 2; }
@@ -232,6 +252,21 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .pebble.selected .lift { transform: translateY(-14px); }
 .pebble .lift { transition: transform .18s ease; }
 .rule-slot { fill: none; stroke: rgba(245, 236, 215, .55); stroke-width: 3; stroke-dasharray: 5 6; transition: fill .2s; }
+/* the rules of a game, shown with pictures while Lumo tells them */
+.board-back { fill: rgba(8, 11, 30, .88); cursor: pointer; }
+.rules-board .pop { animation: popin .45s cubic-bezier(.2, 1.6, .4, 1) both; transform-box: fill-box; transform-origin: center; }
+.rules-board .token.kid { fill: var(--mint); }
+.rules-board .token.lumo { fill: #ffd36b; }
+.rules-board .eye { fill: #2b2140; }
+.rules-board .smile, .rules-board .antenna { fill: none; stroke: #2b2140; stroke-width: 3; stroke-linecap: round; }
+.rules-board .antenna { stroke: #ffd36b; stroke-width: 4; }
+.rules-board .stone { fill: url(#pebble); stroke: rgba(0, 0, 0, .25); stroke-width: 1.5; }
+.rules-board .mark { fill: none; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+.rules-board .mark.ok { stroke: var(--mint); }
+.rules-board .mark.no { stroke: var(--rose); }
+.rules-board .group.no .stone { opacity: .5; }
+.rules-board .empty-spot { fill: none; stroke: rgba(245, 236, 215, .6); stroke-width: 3; stroke-dasharray: 6 8; }
+.rules-board .crown { fill: #ffd36b; stroke: #fff2b8; stroke-width: 2; stroke-linejoin: round; filter: url(#glow); }
 .rule-slot.filled { fill: url(#pebble); stroke: var(--warm); stroke-dasharray: none; }
 
 /* ---------- sky ---------- */

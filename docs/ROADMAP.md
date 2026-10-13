@@ -16,7 +16,11 @@ The stages below are not "versions" but directions of growth; many can go in par
   - **Triangle in a box** — guess → play → "magic cut" → why half → the crack
   - **The corner in a semicircle** — the corner is always square → check with a paper corner →
     a student's idea (half a turn → rectangle) → free play off the circle
-  - **The last pebble** — Nim, the secret "four is a trap", generalising to a new rule
+  - **The last pebble** — Nim, the secret "four is a trap", generalising to a new rule (the rules are shown with pictures in sync with Lumo's voice — turns, how many you may take, the last pebbles win — and the "?" button shows them again)
+- [x] **A pyramid in a cube** — the essay's last line, in 3D: turn a glass cube, three equal pyramids
+      fill it (so each is a third), then slices like a deck of cards show it stays a third wherever the
+      apex is (Cavalieri). Opens the question "a cone in a cylinder?". The 3D engine (`src/space.js`)
+      is ready for more solids.
 
 ## Stage 1 — a real voice and the first children
 
@@ -77,7 +81,6 @@ Sources: Lockhart himself (problems and examples from the essay), the history of
 ### Straight from the essay
 | Question | Idea / "aha" |
 |---|---|
-| A pyramid in a cube — how much space? (the end of the essay) | Cut the cube into 3 equal pyramids |
 | A slanted triangle (the top vertex past the box) | Complete a big triangle and subtract the small one |
 | I know the sum and the difference of two numbers. What are the numbers? (Babylonians) | Pebbles in two piles: "equal + the extra" |
 | 5 groups of 7 — the same as 7 groups of 5? | Turn a rectangle of pebbles |

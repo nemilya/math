@@ -14,6 +14,7 @@ const GAP = 64;
 
 export default async function lastPebble(s) {
   const g = s.layer();
+  // Dashed slots at the top: "how many may I take" — they fill up as pebbles are picked.
   const rules = s.el('g', { transform: 'translate(500 70)' }, g);
   const row = s.el('g', {}, g);
   let pebbles = [];
@@ -22,12 +23,113 @@ export default async function lastPebble(s) {
 
   const left = () => pebbles.filter((p) => !p.taken).length;
 
+  const slots = rules;
   const drawRules = () => {
     rules.innerHTML = '';
     for (let i = 0; i < max; i++) {
-      s.el('circle', { cx: (i - (max - 1) / 2) * 40, cy: 0, r: 14, class: 'rule-slot' }, rules);
+      s.el('circle', { cx: (i - (max - 1) / 2) * 40, cy: 0, r: 14, class: 'rule-slot' }, slots);
     }
   };
+
+  // ----- the rules, told with pictures (at the start, after a new rule, and on "?") -----
+  // 1. we take turns: a pebble hops between the child and Lumo;
+  // 2. you may take 1…max: little piles with a tick, and one too many with a cross;
+  // 3. whoever takes the last pebbles (one or several at once, so that none are left) wins:
+  //    the last two fly to the child together, an empty spot remains, the child gets a crown.
+  const face = (parent, x, y, who) => {
+    const t = s.el('g', { transform: `translate(${x} ${y})` }, parent);
+    if (who === 'lumo') s.el('path', { d: 'M4 -30 C 4 -42, 12 -48, 18 -52', class: 'antenna' }, t);
+    s.el('circle', { r: 32, class: `token ${who}` }, t);
+    s.el('circle', { cx: -10, cy: -4, r: 4.5, class: 'eye' }, t);
+    s.el('circle', { cx: 10, cy: -4, r: 4.5, class: 'eye' }, t);
+    s.el('path', { d: 'M-10 10 Q0 19 10 10', class: 'smile' }, t);
+    return t;
+  };
+  const stone = (parent, x, y, r = 13) => s.el('ellipse', { cx: x, cy: y, rx: r, ry: r * 0.82, class: 'stone' }, parent);
+  const popIn = (parent, x, y) => {
+    const outer = s.el('g', { transform: `translate(${x} ${y})` }, parent);
+    return s.el('g', { class: 'pop' }, outer);
+  };
+
+  let showing = null;
+  const showRules = () =>
+    (showing ??= (async () => {
+      const board = s.el('g', { class: 'rules-board' }, g); // last in the layer → on top of the game
+      const back = s.el('rect', { x: -400, y: -200, width: 1800, height: 1000, class: 'board-back' }, board);
+      let closed = false;
+      back.addEventListener('click', () => {
+        closed = true;
+        s.hush();
+      });
+      try {
+        board.style.opacity = 0;
+        row.style.visibility = 'hidden'; // the game's own pebbles would show through
+        await s.fadeIn(board, 250);
+
+        // 1. turns
+        face(popIn(board, 0, 0), 390, 190, 'kid');
+        face(popIn(board, 0, 0), 610, 190, 'lumo');
+        const ball = stone(board, 440, 190, 14);
+        await Promise.all([
+          s.say('rules.turns'),
+          s.tween(2400, (k) => {
+            const hop = (k * 3) % 1; // three hops: you → Lumo → you → Lumo
+            const dir = Math.floor(k * 3) % 2 ? -1 : 1;
+            const x = dir > 0 ? 440 + 120 * hop : 560 - 120 * hop;
+            set(ball, { cx: x, cy: 190 - 55 * Math.sin(Math.PI * hop) });
+          }),
+        ]);
+        if (closed) return;
+
+        // 2. how many: 1…max ✓, max+1 ✗
+        const n = max + 1;
+        const gap = n === 4 ? 175 : 150;
+        const take = s.say(`rules.take.${max}`);
+        take.catch(() => {}); // the scene may close mid-way
+        for (let i = 1; i <= n; i++) {
+          const ok = i <= max;
+          const grp = popIn(board, 500 + (i - (n + 1) / 2) * gap, 335);
+          grp.classList.add('group', ok ? 'ok' : 'no');
+          for (let j = 0; j < i; j++) stone(grp, (j - (i - 1) / 2) * 27, 0);
+          s.el('path', { d: ok ? 'M-16 52 L-4 64 L18 40' : 'M-14 40 L14 66 M14 40 L-14 66', class: `mark ${ok ? 'ok' : 'no'}` }, grp);
+          sfx.pebble();
+          await s.wait(ok ? 650 : 900);
+          if (closed) return;
+        }
+        await take;
+        if (closed) return;
+
+        // 3. whoever takes the last pebbles wins — even two or three at once
+        const spot = s.el('circle', { cx: 500, cy: 505, r: 34, class: 'empty-spot' }, board);
+        spot.style.opacity = 0;
+        const last = [stone(board, 482, 505, 17), stone(board, 518, 505, 17)];
+        const said = s.say('rules.win');
+        said.catch(() => {});
+        await s.wait(700);
+        if (closed) return;
+        await s.tween(900, (k) => {
+          last.forEach((e, i) => {
+            set(e, { cx: (i ? 518 : 482) + (390 - (i ? 518 : 482) + (i ? 12 : -12)) * k, cy: 505 + (235 - 505) * k });
+            e.style.opacity = 1 - 0.7 * k;
+          });
+        });
+        last.forEach((e) => e.remove());
+        sfx.pebble();
+        await s.fadeIn(spot, 300); // nothing left for the other player
+        const crown = popIn(board, 390, 182);
+        s.el('path', { d: 'M-24 -24 L-24 -52 L-12 -38 L0 -58 L12 -38 L24 -52 L24 -24 Z', class: 'crown' }, crown);
+        sfx.chime();
+        s.sparkle(390, 140);
+        await said;
+        if (!closed) await s.wait(900);
+      } finally {
+        await s.fadeOut(board, 300).catch(() => {});
+        board.remove();
+        row.style.visibility = '';
+        showing = null;
+      }
+    })());
+  s.help(() => showRules().catch(() => {}));
 
   const setup = async (n) => {
     row.innerHTML = '';
@@ -55,7 +157,7 @@ export default async function lastPebble(s) {
     p.sel = on;
     p.g.classList.toggle('selected', on);
     const n = pebbles.filter((q) => q.sel && !q.taken).length;
-    [...rules.children].forEach((c, i) => c.classList.toggle('filled', i < n));
+    [...slots.children].forEach((c, i) => c.classList.toggle('filled', i < n));
   };
 
   const take = async (list, who) => {
@@ -76,7 +178,7 @@ export default async function lastPebble(s) {
         sfx.pebble();
       }),
     );
-    for (const c of rules.children) c.classList.remove('filled');
+    for (const c of slots.children) c.classList.remove('filled');
   };
 
   const kidTurn = async () => {
@@ -152,8 +254,8 @@ export default async function lastPebble(s) {
   drawRules();
   await s.say('hello');
   await setup(s.age === 'small' ? 7 : 10);
-  await s.say('rules1');
-  await s.say('rules2');
+  await showRules();
+  await s.say('rules.where');
 
   // Little ones get shorter games. (Never a multiple of the trap: the child, moving first, can always win.)
   const sizes = s.age === 'small' ? { 3: [7, 6, 9, 7], 4: [8, 7, 9] } : { 3: [10, 11, 9, 13, 10, 11], 4: [13, 12, 11, 14] };
@@ -209,6 +311,7 @@ export default async function lastPebble(s) {
       countAloud = false;
       drawRules();
       await s.say('newrule');
+      await showRules();
     }
   }
 }

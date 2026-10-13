@@ -5,7 +5,7 @@ import { voices } from './recorder.js';
 import { sfx } from './sfx.js';
 
 const isVisible = (st, store) =>
-  st.kind === 'adventure' || st.far || store.isLit(st.from) || store.isUnlocked(st.id);
+  (st.kind === 'adventure' && !st.from) || st.far || store.isLit(st.from) || store.isUnlocked(st.id);
 
 export async function runSky(s, { stars, justLit }) {
   const { store } = s;

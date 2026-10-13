@@ -1,7 +1,10 @@
 export default {
   hello: "Let's play pebbles!",
-  rules1: 'We take turns. On each turn you may take one, two or three pebbles.',
-  rules2: 'Whoever takes the last pebble wins.',
+  'rules.turns': 'We take turns: you, then me, then you again.',
+  'rules.take.3': 'On each turn you may take one, two or three pebbles. But four — not allowed.',
+  'rules.take.4': 'On each turn you may take one, two, three or four pebbles. But five — not allowed.',
+  'rules.win': 'Whoever takes the last pebbles, so that none are left, wins. Even if you take two or three at once!',
+  'rules.where': "If you forget the rules, tap the question mark in the corner. I'll show them again.",
   'start.first': 'You go first. Tap the pebbles you want to take. Then tap the check mark.',
   yourturn: ['Your turn.', 'Now you.', 'Over to you.'],
   'tap.hint': {
