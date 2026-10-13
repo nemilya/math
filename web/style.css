@@ -184,6 +184,8 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .piece { stroke: none; }
 .piece.warm { fill: rgba(255, 196, 87, .5); }
 .piece.cool { fill: rgba(110, 170, 255, .55); }
+.piece.moving { fill: rgba(120, 178, 255, .8); stroke: #dbe9ff; stroke-width: 3; stroke-linejoin: round; filter: url(#glow); }
+.hole { fill: none; stroke: rgba(140, 188, 255, .75); stroke-width: 2.5; stroke-dasharray: 7 7; stroke-linejoin: round; }
 /* the two parts of the box in "triangle in a box": left = mint, right = violet */
 .part { stroke-width: 5; stroke-linejoin: round; filter: url(#glow); }
 .part.left { stroke: var(--mint); fill: rgba(123, 224, 176, .16); }

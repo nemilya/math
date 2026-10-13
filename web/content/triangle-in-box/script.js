@@ -197,21 +197,35 @@ export default async function triangleInBox(s) {
   parts.style.display = 'none';
   parts.style.opacity = '';
   await s.say('flip');
+  // The blue piece itself is picked up and turned half a turn around the centre of its part:
+  // its old place stays empty (a dashed outline), and it lands exactly on the yellow piece.
+  const cy = (T + B) / 2;
+  const turn = (piece, cx, from, to, ms) =>
+    s.tween(ms, (k) => {
+      const a = from + (to - from) * k;
+      const lift = 1 + 0.06 * Math.sin(Math.PI * k); // a little "lifted off the table" while moving
+      piece.setAttribute('transform', `rotate(${a} ${cx} ${cy}) translate(${cx} ${cy}) scale(${lift}) translate(${-cx} ${-cy})`);
+    });
   const flip = async (piece, cx) => {
-    const ghost = piece.cloneNode();
-    flips.appendChild(ghost);
-    await s.tween(1300, (k) => ghost.setAttribute('transform', `rotate(${180 * k} ${cx} ${(T + B) / 2})`));
+    s.el('polygon', { class: 'hole', points: piece.getAttribute('points') }, flips);
+    piece.classList.add('moving');
+    await turn(piece, cx, 0, 180, 1400);
+    piece.classList.remove('moving');
     sfx.pop();
   };
-  await flip(outL, (L + tip.x) / 2);
-  await flip(outR, (tip.x + R) / 2);
+  const cxL = (L + tip.x) / 2;
+  const cxR = (tip.x + R) / 2;
+  await flip(outL, cxL);
+  await flip(outR, cxR);
   s.celebrate(500, 290);
   await s.say('fits');
   await s.say('half');
   await s.say('formula'); // only older children hear where the school formula comes from
-  await s.fadeOut(flips, 500);
+  // Put the pieces back where they came from, so the picture is whole again.
+  await Promise.all([turn(outL, cxL, 180, 0, 900), turn(outR, cxR, 180, 0, 900)]);
+  outL.removeAttribute('transform');
+  outR.removeAttribute('transform');
   flips.innerHTML = '';
-  flips.style.opacity = '';
   await s.say(guess === 'half' ? 'guess.was.half' : 'guess.was.other');
   s.complete();
 
