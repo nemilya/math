@@ -8,7 +8,7 @@ LANGS ?=
 .PHONY: help serve check voice dist
 
 help:  ## list targets
-	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
+	@awk -F ':.*## ' '/^[a-z-]+:.*## / { printf "  %-7s %s\n", $$1, $$2 }' $(firstword $(MAKEFILE_LIST))
 
 serve:  ## the portal locally: http://localhost:8000
 	node tools/serve.mjs 8000
