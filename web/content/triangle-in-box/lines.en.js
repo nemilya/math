@@ -39,10 +39,17 @@ export default {
   auto: 'Let me try — right through the tip.',
 
   cut: 'Look! The cut split the box into two parts.',
-  halves: {
-    small: 'The triangle cuts each part slantwise — exactly in half.',
-    middle: 'In each part, a side of the triangle runs slantwise, corner to corner. It cuts that part exactly in half.',
-    big: 'Now each side of the triangle is a diagonal of a small rectangle. And a diagonal cuts a rectangle exactly in half.',
+  'part.left': 'Here is the left part.',
+  'part.right': 'And here is the right one.',
+  'half.left': {
+    small: 'Look at the left part. The triangle cuts it slantwise — exactly in half.',
+    middle: 'Look at the left part. A side of the triangle runs across it slantwise, corner to corner, and cuts it exactly in half.',
+    big: 'Look at the left part. A side of the triangle is its diagonal. And a diagonal cuts a rectangle exactly in half.',
+  },
+  'half.right': {
+    small: 'And the right one — in half too!',
+    middle: 'And the right part is just the same: the other side of the triangle cuts it exactly in half.',
+    big: 'And the right one too: the other side of the triangle is its diagonal. Exactly in half again.',
   },
   inout: 'Yellow is inside the triangle. Blue is outside.',
   flip: "Let's turn the blue pieces around.",
@@ -58,8 +65,13 @@ export default {
   again: 'Move the tip again. The cut will follow it.',
   always: 'Wherever the tip goes, the trick works. Always exactly half!',
 
-  twist: "Now I'll let the tip go further. Try pulling it outside the wall of the box!",
-  'twist.hint': 'Pull the dot far to the side — past the edge of the box.',
+  twist: {
+    small: 'Now pull the dot sideways — far, far away, past the wall of the box!',
+    middle: "Now I'll let the tip go further. Pull it sideways along the roof — left or right — right past the side wall of the box!",
+    big: 'Now the vertex can go further. Slide it sideways along the roof — past the side wall of the rectangle.',
+  },
+  'twist.hint': 'The dot only rides sideways, along the light track. Pull it left or right until it goes past the wall.',
+  updown: "The dot doesn't go up or down — only sideways, along the roof.",
   broken: {
     small: "Oh! The box got wider. And our scissors don't help anymore.",
     middle: "Oh! The box got wider. And our cut... doesn't help anymore.",

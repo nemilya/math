@@ -30,10 +30,23 @@ export default async function triangleInBox(s) {
   const outL = s.el('polygon', { class: 'piece cool' }, pieces);
   const outR = s.el('polygon', { class: 'piece cool' }, pieces);
   const tri = s.el('polygon', { class: 'shape warm' }, g);
+  // The two parts of the box after the cut, each with its own colour, and the side of the
+  // triangle that halves it — shown one at a time while Lumo explains.
+  const parts = s.el('g', {}, g);
+  const partL = s.el('rect', { class: 'part left' }, parts);
+  const partR = s.el('rect', { class: 'part right' }, parts);
+  const sideL = s.el('line', { class: 'side left' }, parts);
+  const sideR = s.el('line', { class: 'side right' }, parts);
   const cut = s.el('line', { class: 'cut' }, g);
   const flips = s.el('g', {}, g);
+  // The tip slides only sideways, along the roof: a dashed "rail" and two little arrows show it.
+  const rail = s.el('line', { class: 'rail' }, g);
   const handle = s.handle(g);
+  s.el('path', { d: 'M-30 -10 L-41 0 L-30 10', class: 'chev l' }, handle);
+  s.el('path', { d: 'M30 -10 L41 0 L30 10', class: 'chev r' }, handle);
+  rail.style.display = 'none';
   pieces.style.opacity = 0;
+  parts.style.display = 'none';
   cut.style.display = 'none';
   handle.show(false);
 
@@ -43,7 +56,12 @@ export default async function triangleInBox(s) {
     set(box, { x: x0, y: T, width: x1 - x0, height: B - T });
     tri.setAttribute('points', pts([{ x: L, y: B }, tip, { x: R, y: B }]));
     handle.moveTo(tip.x, tip.y);
+    set(rail, { x1: lo, y1: T, x2: hi, y2: T });
     set(cut, { x1: tip.x, y1: T, x2: tip.x, y2: B });
+    set(partL, { x: L, y: T, width: Math.max(0, tip.x - L), height: B - T });
+    set(partR, { x: tip.x, y: T, width: Math.max(0, R - tip.x), height: B - T });
+    set(sideL, { x1: tip.x, y1: tip.y, x2: L, y2: B });
+    set(sideR, { x1: tip.x, y1: tip.y, x2: R, y2: B });
     const inside = tip.x >= L && tip.x <= R;
     pieces.style.display = showPieces && inside ? '' : 'none';
     if (showPieces && inside) {
@@ -55,15 +73,33 @@ export default async function triangleInBox(s) {
   };
 
   let travel = 0;
-  const dragTip = () =>
-    s.drag(handle, {
+  let saidUpDown = false;
+  const dragTip = () => {
+    let p0 = null;
+    handle.classList.add('slide');
+    rail.style.display = '';
+    const d = s.drag(handle, {
+      start: (p) => (p0 = p),
       move: (p) => {
         const x = clamp(p.x, lo, hi);
         travel += Math.abs(x - tip.x);
         tip.x = x;
         render();
+        // A child pulling up or down gets told (once) that the dot only rides sideways.
+        if (!saidUpDown && p0 && Math.abs(p.y - p0.y) > 90 && Math.abs(p.x - p0.x) < 45) {
+          saidUpDown = true;
+          s.say('updown', { polite: true }).catch(() => {});
+        }
       },
     });
+    const stop = d.stop;
+    d.stop = () => {
+      stop();
+      handle.classList.remove('slide');
+      rail.style.display = 'none';
+    };
+    return d;
+  };
 
   render();
 
@@ -133,9 +169,33 @@ export default async function triangleInBox(s) {
 
   // 4. The "aha": each half of the box is cut in half by a side of the triangle.
   await s.say('cut');
-  await Promise.all([s.fadeIn(pieces, 600), s.animate(tri, 'fillOpacity', 1, 0, 600)]);
-  await s.say('halves');
+  for (const e of [partL, partR, sideL, sideR, inL, outL, inR, outR]) e.style.opacity = 0;
+  pieces.style.opacity = 1;
+  parts.style.display = '';
+  await s.animate(tri, 'fillOpacity', 1, 0.15, 500);
+
+  // Name the two parts: left, then right — each lights up in its own colour.
+  await Promise.all([s.fadeIn(partL, 500), s.say('part.left')]);
+  await Promise.all([s.fadeIn(partR, 500), s.say('part.right')]);
+
+  // One part at a time: its slanted side, and the two equal halves it makes.
+  const focus = async (part, other, side, a, b, line) => {
+    other.style.opacity = 0.25;
+    part.style.opacity = 1;
+    side.style.opacity = 1;
+    await Promise.all([s.draw(side, 700), s.fadeIn(a, 600), s.fadeIn(b, 600), s.say(line)]);
+  };
+  await focus(partL, partR, sideL, inL, outL, 'half.left');
+  sideL.style.opacity = 0.35;
+  await focus(partR, partL, sideR, inR, outR, 'half.right');
+  await Promise.all([
+    s.animate(partL, 'opacity', 0.25, 1, 300),
+    s.animate(tri, 'fillOpacity', 0.15, 0, 400),
+  ]);
   await s.say('inout');
+  await s.fadeOut(parts, 500);
+  parts.style.display = 'none';
+  parts.style.opacity = '';
   await s.say('flip');
   const flip = async (piece, cx) => {
     const ghost = piece.cloneNode();
@@ -168,7 +228,8 @@ export default async function triangleInBox(s) {
   // 6. ...and then it breaks. A real open question.
   lo = 40;
   hi = 960;
-  await s.say('twist');
+  render();
+  await Promise.all([s.draw(rail, 900), s.say('twist')]); // the rail now runs past both walls
   await s.until(() => tip.x < L - 60 || tip.x > R + 60, { hints: ['twist.hint'] });
   await s.until(() => !d.active);
   d.stop();

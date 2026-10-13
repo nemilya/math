@@ -184,6 +184,13 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .piece { stroke: none; }
 .piece.warm { fill: rgba(255, 196, 87, .5); }
 .piece.cool { fill: rgba(110, 170, 255, .55); }
+/* the two parts of the box in "triangle in a box": left = mint, right = violet */
+.part { stroke-width: 5; stroke-linejoin: round; filter: url(#glow); }
+.part.left { stroke: var(--mint); fill: rgba(123, 224, 176, .16); }
+.part.right { stroke: var(--violet); fill: rgba(181, 156, 255, .16); }
+.side { stroke-width: 9; stroke-linecap: round; filter: url(#glow-line); }
+.side.left { stroke: var(--mint); }
+.side.right { stroke: var(--violet); }
 .cut { stroke: #fff; stroke-width: 4; stroke-dasharray: 14 10; stroke-linecap: round; }
 .hit-area { fill: transparent; cursor: crosshair; }
 
@@ -191,6 +198,14 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .handle .dot { fill: #fff3c4; filter: url(#glow); }
 .handle .ring { fill: none; stroke: #ffe28a; stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: ring 1.6s ease-out infinite; }
 @keyframes ring { from { transform: scale(.7); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+
+/* a sideways-only handle: a dashed rail and two arrows that nudge left and right */
+.rail { stroke: rgba(255, 226, 138, .6); stroke-width: 3; stroke-dasharray: 3 11; stroke-linecap: round; }
+.handle .chev { display: none; fill: none; stroke: #ffe28a; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.handle.slide .chev { display: inline; animation: nudge-l 1.4s ease-in-out infinite; }
+.handle.slide .chev.r { animation-name: nudge-r; }
+@keyframes nudge-l { 0%, 100% { transform: translateX(0); opacity: .9; } 50% { transform: translateX(-6px); opacity: .5; } }
+@keyframes nudge-r { 0%, 100% { transform: translateX(0); opacity: .9; } 50% { transform: translateX(6px); opacity: .5; } }
 
 .draggable { cursor: grab; }
 .draggable:active { cursor: grabbing; }
