@@ -2,6 +2,8 @@
 
 *Русская версия: [README.ru.md](README.ru.md)*
 
+**Demo: [nemilya.me/projects/math](https://nemilya.me/projects/math/)**
+
 Humane mathematics for children, inspired by Paul Lockhart's essay
 **"A Mathematician's Lament"**.
 

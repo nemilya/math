@@ -2,6 +2,8 @@
 
 *English version: [README.md](README.md) (основной язык проекта — английский)*
 
+**Демо: [nemilya.me/projects/math](https://nemilya.me/projects/math/)**
+
 Проект человечной математики для детей. По мотивам эссе Пола Локхарта
 **«A Mathematician's Lament»** («Плач математика»).
 

@@ -5,6 +5,8 @@ import { AGES } from './i18n.js';
 import { voices } from './recorder.js';
 import { h } from './ui.js';
 
+const REPO = 'https://github.com/nemilya/math';
+
 const T = {
   ru: {
     title: 'Для взрослых',
@@ -31,6 +33,10 @@ const T = {
     reset: 'Начать сначала',
     resetNote: 'Звёзды погаснут, свои вопросы ребёнка исчезнут с неба. Записи в альбоме останутся.',
     resetYes: 'Да, начать сначала',
+    about: 'О проекте',
+    aboutNote:
+      'Человечная математика для детей по мотивам эссе Пола Локхарта «Плач математика». Открытый проект (лицензия MIT): код, приключения и озвучка — на GitHub.',
+    repo: 'Исходный код на GitHub',
   },
   en: {
     title: 'For grown-ups',
@@ -57,6 +63,10 @@ const T = {
     reset: 'Start over',
     resetNote: "Stars go dark and the child's own questions leave the sky. Album recordings stay.",
     resetYes: 'Yes, start over',
+    about: 'About',
+    aboutNote:
+      "Humane mathematics for children, inspired by Paul Lockhart's essay \"A Mathematician's Lament\". An open project (MIT license): the code, the adventures and the voice are on GitHub.",
+    repo: 'Source code on GitHub',
   },
 };
 
@@ -166,6 +176,13 @@ export function createSettings({ host, i18n, store, onChange }) {
       }), h('p', { class: 'muted' }, L.ageNote)),
       h('section', {}, toggle('set-hints', L.hints, L.hintsNote, 'hints'), toggle('set-cc', L.cc, L.ccNote, 'cc'), toggle('set-mic', L.mic, L.micNote, 'mic')),
       h('section', {}, h('h3', {}, L.album), h('p', { class: 'muted' }, L.albumNote), await album()),
+      h(
+        'section',
+        {},
+        h('h3', {}, L.about),
+        h('p', { class: 'muted' }, L.aboutNote),
+        h('a', { class: 'link', href: REPO, target: '_blank', rel: 'noopener' }, L.repo, ' ↗'),
+      ),
       h('section', {}, resetBox),
     );
     host.replaceChildren(panel);

@@ -319,7 +319,7 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
   -webkit-user-select: text;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
 }
-.sheet header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 0 6px; background: #f7f3ea; }
+.sheet header { position: sticky; top: -8px; z-index: 1; margin-top: -8px; display: flex; align-items: center; justify-content: space-between; padding: 20px 0 6px; background: #f7f3ea; } /* covers the panel's top padding while scrolling */
 .sheet h2 { margin: 0; font-size: 22px; }
 .sheet h3 { margin: 0 0 8px; font-size: 16px; }
 .sheet section { padding: 14px 0; border-top: 1px solid #e3dccb; display: grid; gap: 10px; }
@@ -342,6 +342,7 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .sheet .small-btn { padding: 6px 12px; border: 0; border-radius: 10px; background: #ffd78a; color: #3a2400; }
 .sheet .quiet { padding: 6px 12px; border: 0; border-radius: 10px; background: #ebe4d4; color: #23263f; }
 .sheet .danger { justify-self: start; padding: 8px 14px; border: 0; border-radius: 10px; background: #c8413c; color: #fff; }
+.sheet .link { justify-self: start; color: #9a5a00; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .sheet .reset { display: grid; gap: 8px; justify-items: start; }
 
 /* first launch: three quick choices for a grown-up */
