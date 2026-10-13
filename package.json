@@ -1,0 +1,10 @@
+{
+  "name": "lumo-math",
+  "private": true,
+  "description": "Лумо — небо вопросов. Человечная математика для детей по мотивам «A Mathematician's Lament» Пола Локхарта.",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "check": "node tools/lines.mjs check"
+  }
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b1026">
+  <title>Лумо — небо вопросов</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg id="stage" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="blur"><feGaussianBlur stdDeviation="3"/></filter>
+      <radialGradient id="pebble" cx="35%" cy="30%" r="75%">
+        <stop offset="0" stop-color="#efe8da"/>
+        <stop offset=".6" stop-color="#ada392"/>
+        <stop offset="1" stop-color="#6d6557"/>
+      </radialGradient>
+      <radialGradient id="halo">
+        <stop offset="0" stop-color="#ffe9a8" stop-opacity=".55"/>
+        <stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="nebula">
+        <stop offset="0" stop-color="#8a6bd8" stop-opacity=".28"/>
+        <stop offset="1" stop-color="#8a6bd8" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <g id="bg"></g>
+  </svg>
+
+  <div id="subtitle" hidden></div>
+  <div id="dock"></div>
+
+  <div id="topbar">
+    <button id="btn-home" class="btn small" hidden aria-label="Home"></button>
+    <button id="btn-cc" class="btn small" aria-label="Subtitles"></button>
+    <button id="btn-lang" class="btn small lang" aria-label="Language"></button>
+  </div>
+  <div id="langs" hidden></div>
+
+  <div id="keeper" class="center asleep" role="button" aria-label="Lumo"></div>
+
+  <!-- Portrait phones: the sky is wide, so we ask (with a picture) to turn the phone. Tap to dismiss. -->
+  <div id="rotate" hidden>
+    <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <g class="phone"><rect x="38" y="20" width="44" height="80" rx="8"/><path d="M54 90 H66"/></g>
+      <path d="M96 40 A44 44 0 0 1 100 70" class="arrow"/><path d="M92 64 L100 72 L106 62" class="arrow"/>
+    </svg>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
