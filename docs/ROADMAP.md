@@ -1,97 +1,99 @@
-# Дорожная карта
+# Roadmap
 
-Портал задуман как **постоянно растущий**: движок стабилен, небо пополняется.
-Этапы ниже — не «версии», а направления роста; многое можно делать параллельно.
+*Русская версия: [ru/ROADMAP.md](ru/ROADMAP.md)*
 
-## Этап 0 — прототип (сделано)
+The portal is meant to **keep growing**: the engine is stable, the sky keeps filling up.
+The stages below are not "versions" but directions of growth; many can go in parallel.
 
-- [x] Концепция, персонаж, принципы ([VISION](VISION.md), [KEEPER](KEEPER.md))
-- [x] Движок сцен: голос, подсказки по бездействию, перетаскивание, отмена, анимации
-- [x] Голос: синтез браузера + поддержка записанных файлов + субтитры как запасной вариант
-- [x] Два языка (ru, en), проверка полноты реплик
-- [x] Небо вопросов: приключения, открытые вопросы, далёкие звёзды, свои вопросы ребёнка
-- [x] Запись объяснений и идей голосом ребёнка (хранится только на устройстве)
-- [x] Три приключения прямо из эссе Локхарта:
-  - **Треугольник в коробке** — догадка → игра → «волшебный разрез» → почему половина → трещина
-  - **Уголок в полукруге** — уголок всегда прямой → проверка уголком бумаги → идея ученика
-    (поворот на пол-оборота → прямоугольник) → свободная игра вне круга
-  - **Последний камешек** — игра в ним, секрет «четыре — ловушка», обобщение на новое правило
+## Stage 0 — prototype (done)
 
-## Этап 1 — живой голос и первые дети
+- [x] Concept, character, principles ([VISION](VISION.md), [KEEPER](KEEPER.md))
+- [x] Scene engine: voice, hints on silence, dragging, cancellation, animations
+- [x] Two languages (English is the main one, Russian), completeness check of all lines
+- [x] Sky of questions: adventures, open questions, faraway stars, the child's own questions
+- [x] Recording explanations and ideas in the child's voice (kept on the device only)
+- [x] Three adventures straight from Lockhart's essay:
+  - **Triangle in a box** — guess → play → "magic cut" → why half → the crack
+  - **The corner in a semicircle** — the corner is always square → check with a paper corner →
+    a student's idea (half a turn → rectangle) → free play off the circle
+  - **The last pebble** — Nim, the secret "four is a trap", generalising to a new rule
 
-- [ ] **Качественная озвучка.** Экспорт реплик (`tools/lines.mjs export`) → живой актёр
-      или нейросинтез (например, открытые модели вроде Silero для русского или облачные
-      TTS) → `web/audio/<lang>/`. Голос — половина характера Лумо.
-- [ ] **Тесты с детьми.** 5–10 детей 5–9 лет, рядом взрослый, наблюдаем молча:
-      где застревают, что понимают без слов, где скучно, где «ага!». Это главный
-      источник правок.
-- [ ] **Публикация** на GitHub Pages / Netlify (workflow, домен).
-- [ ] **PWA**: установка на планшет, работа офлайн.
-- [ ] Доступность: управление с клавиатуры, крупный режим, настройки скорости речи.
+## Stage 1 — a real voice and the first children
 
-## Этап 2 — небо растёт
+- [x] **Quality voice**: every line voiced with Gemini TTS via OpenRouter, checked by transcription (`make voice`)
+- [x] **Three age bands** (4–6, 7–9, 10–12): Lumo's words change, the ideas stay
+- [x] **Grown-ups' panel**: age, hints, subtitles, microphone, the discovery album, start over
+- [x] **Calm hints**: each hint once, can be switched off
+- [x] **Hosting folder**: `make dist` → `dist/` + `dist.zip`, works from any subfolder
+- [ ] **Listen to the voice and tune it**: choose between voices, adjust the character brief, re-voice odd lines (`--redo`)
+- [ ] **Tests with children.** 5–10 children aged 5–10, a grown-up nearby, we watch silently:
+      where they get stuck, what they understand without words, where it's boring, where the "aha!" is.
+      This is the main source of changes.
+- [ ] **PWA**: install on a tablet, work offline.
+- [ ] Accessibility: keyboard control, a large mode, speech speed.
 
-Цель — 15–25 приключений, сплетённых в созвездия. Банк идей ниже.
+## Stage 2 — the sky grows
 
-- [ ] Созвездия по «вкусам»: **Формы**, **Числа и узоры**, **Игры с секретом**,
-      **Бесконечность**, **Истории людей**.
-- [ ] Приключения-ответы на открытые вопросы, которые уже висят на небе.
-- [ ] «Альбом открытий» для родителей: звёзды ребёнка и его голосовые объяснения —
-      без процентов и оценок.
+Goal: 15–25 adventures woven into constellations. Idea bank below.
 
-## Этап 3 — истории и «видео»
+- [ ] Constellations by "flavour": **Shapes**, **Numbers and patterns**, **Games with a secret**,
+      **Infinity**, **Stories of people**.
+- [ ] Adventures answering the open questions already hanging in the sky.
+- [ ] A richer discovery album for parents: the child's stars and voice explanations over time —
+      without percentages or grades.
 
-- [ ] **Истории людей**, рассказанные Лумо: вавилонские таблички, Архимед и круг
-      (метод исчерпывания), Пифагор и диагональ квадрата, Гаусс-школьник и сумма
-      чисел, Эйлер и мосты Кёнигсберга. Не даты — драмы идей.
-- [ ] Анимированные «мультфильмы» тем же движком сцен (голос + SVG-анимация, можно
-      ставить на паузу и вмешиваться) — сразу на всех языках.
-- [ ] Примитив `s.video(src)` для настоящих видео: узоры в природе (соты, подсолнух,
-      снежинки, раковины), съёмки моделей из бумаги.
+## Stage 3 — stories and "videos"
 
-## Этап 4 — Лумо слушает
+- [ ] **Stories of people**, told by Lumo: Babylonian tablets, Archimedes and the circle
+      (method of exhaustion), Pythagoras and the diagonal of a square, young Gauss and the sum of
+      numbers, Euler and the bridges of Königsberg. Not dates — dramas of ideas.
+- [ ] Animated "cartoons" made with the same scene engine (voice + SVG animation, can be paused
+      and interrupted) — in every language at once.
+- [ ] A `s.video(src)` primitive for real footage: patterns in nature (honeycombs, sunflowers,
+      snowflakes, shells), paper models.
 
-- [ ] Распознавание речи ребёнка (на устройстве, где возможно) и ответ Лумо на
-      *содержание* объяснения: уточняющий вопрос, «а что если...?», восхищение
-      удачной идеей. Принцип: Лумо не оценивает, а продолжает разговор.
-- [ ] Строгая приватность: явное согласие родителей, обработка на устройстве или
-      без хранения, никакого обучения на голосах детей.
+## Stage 4 — Lumo listens
 
-## Этап 5 — сообщество
+- [ ] Recognising the child's speech and Lumo replying to the *content* of an explanation: a
+      follow-up question, "what if...?", delight at a good idea. Principle: Lumo doesn't grade,
+      he continues the conversation.
+- [ ] Strict privacy: explicit parental consent, processing on the device or without storage,
+      no training on children's voices.
 
-- [ ] Открытый формат приключений, гайд для авторов ([AUTHORING](AUTHORING.md)),
-      ревью по чек-листу «дух книги».
-- [ ] Визуальный редактор сцен для учителей.
-- [ ] Новые языки силами переводчиков (файлы реплик + озвучка).
-- [ ] «Небо класса»: учитель показывает приключение на большом экране, класс спорит.
+## Stage 5 — community
+
+- [ ] An open adventure format, an author guide ([AUTHORING](AUTHORING.md)), reviews against
+      the "spirit of the book" checklist.
+- [ ] A visual scene editor for teachers.
+- [ ] New languages by translators (lines files + voice).
+- [ ] "Class sky": a teacher shows an adventure on a big screen, the class argues.
 
 ---
 
-## Банк идей приключений
+## Adventure idea bank
 
-Источник — сам Локхарт (задачи и примеры из эссе), история математики, игры.
+Sources: Lockhart himself (problems and examples from the essay), the history of mathematics, games.
 
-### Прямо из эссе
-| Вопрос | Идея / «ага» |
+### Straight from the essay
+| Question | Idea / "aha" |
 |---|---|
-| Пирамида в кубе — сколько места? (финал эссе) | Разрезать куб на 3 одинаковые пирамиды |
-| Косой треугольник (вершина за краем коробки) | Достроить большой треугольник и вычесть маленький |
-| Я знаю сумму и разность двух чисел. Какие это числа? (вавилоняне) | Камешки в две кучки: «поровну + лишнее» |
-| 5 групп по 7 — то же, что 7 групп по 5? | Повернуть прямоугольник из камешков |
-| Мир, где 1 + 1 = 0 (арифметика по модулю 2) | Чёт-нечет, выключатель света |
-| Как измерить круг? (Евдокс, Архимед) | Вписанные многоугольники, которые «съедают» круг |
-| Сколько способов симметрично замостить плоскость? | Плитки-паркеты, зеркала и повороты |
-| Какой длины диагональ куба? | Диагональ квадрата → диагональ куба |
-| Кончаются ли простые числа? | Камешки, которые не складываются в прямоугольник |
-| Бесконечность — это число? | Отель Гильберта, пары «ребёнок — стул» |
-| Треугольник на мяче: углы больше? | Треугольник с тремя прямыми углами на глобусе |
-| Отрицательные степени (для старших) | Продолжить узор «делим на 2» влево |
+| A pyramid in a cube — how much space? (the end of the essay) | Cut the cube into 3 equal pyramids |
+| A slanted triangle (the top vertex past the box) | Complete a big triangle and subtract the small one |
+| I know the sum and the difference of two numbers. What are the numbers? (Babylonians) | Pebbles in two piles: "equal + the extra" |
+| 5 groups of 7 — the same as 7 groups of 5? | Turn a rectangle of pebbles |
+| A world where 1 + 1 = 0 (arithmetic mod 2) | Odd and even, a light switch |
+| How to measure a circle? (Eudoxus, Archimedes) | Inscribed polygons that "eat up" the circle |
+| How many ways to tile a plane symmetrically? | Tiles, mirrors and rotations |
+| How long is the diagonal of a cube? | Diagonal of a square → diagonal of a cube |
+| Do primes go on forever? | Pebbles that don't make a rectangle |
+| Is infinity a number? | Hilbert's hotel, pairing children and chairs |
+| A triangle on a ball: bigger angles? | A triangle with three right angles on a globe |
+| Negative exponents (older children) | Continue the "divide by 2" pattern to the left |
 
-### Игры с секретом
-Ним (несколько кучек), «Ростки» (Sprouts), Гекс, «Последний камешек — проигрывает»,
-крестики-нолики (почему ничья?), «угадай число» (делим пополам).
+### Games with a secret
+Nim (several piles), Sprouts, Hex, "taking the last pebble loses", noughts and crosses (why a draw?),
+"guess the number" (halving).
 
-### Узоры вокруг
-Почему соты шестиугольные; спирали подсолнуха; симметрия снежинки; сколько
-способов сложить лист бумаги; треугольные и квадратные числа из камешков
-(сумма нечётных — квадрат!).
+### Patterns around us
+Why honeycombs are hexagons; sunflower spirals; snowflake symmetry; how many ways to fold a sheet
+of paper; triangular and square numbers from pebbles (the sum of odd numbers is a square!).

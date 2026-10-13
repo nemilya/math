@@ -1,33 +1,18 @@
 #!/usr/bin/env node
-// Tools for Lumo's spoken lines.
+// Lumo's spoken lines.
 //
-//   node tools/lines.mjs check            every language has every line; scripts only use lines that exist
-//   node tools/lines.mjs export ru        all Russian lines as JSON [{id, text}] — a script for a voice
-//                                         actor or a TTS engine. Save each file as web/audio/ru/<ns>/<key>.mp3
-//   node tools/lines.mjs manifest ru      list recorded files into web/audio/ru/manifest.json
+//   node tools/lines.mjs check          every language has every line (and every age version);
+//                                       scripts only use lines that exist
+//   node tools/lines.mjs export ru      all Russian lines as JSON [{id, text}]
+//
+// Voicing them: node tools/voice.mjs (make voice).
 
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, relative, dirname } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { join, relative } from 'node:path';
+import { WEB, CONTENT, AGES, loadAll, expand, isAged } from './lib/lines.mjs';
 
-const WEB = join(dirname(fileURLToPath(import.meta.url)), '..', 'web');
-const CONTENT = join(WEB, 'content');
-const BASE = 'ru';
-
-async function loadAll() {
-  const out = {}; // ns -> lang -> table
-  for (const ns of await readdir(CONTENT, { withFileTypes: true })) {
-    if (!ns.isDirectory()) continue;
-    for (const f of await readdir(join(CONTENT, ns.name))) {
-      const m = f.match(/^lines\.([a-z]{2})\.js$/);
-      if (!m) continue;
-      const mod = await import(pathToFileURL(join(CONTENT, ns.name, f)).href);
-      ((out[ns.name] ??= {})[m[1]] = mod.default);
-    }
-  }
-  return out;
-}
+const BASE = 'en'; // the project's main language: every other language must match it
 
 const literals = (src) =>
   [...src.replace(/[=!]==\s*'[^']*'/g, '').matchAll(/'([^'\\]+)'/g)].map((m) => m[1]);
@@ -48,8 +33,17 @@ async function check() {
   for (const [ns, langs] of Object.entries(all)) {
     const base = langs[BASE] || {};
     for (const [lang, table] of Object.entries(langs)) {
+      for (const [k, v] of Object.entries(table)) {
+        if (isAged(v)) for (const a of Object.keys(v)) if (!AGES.includes(a)) report(`${ns}:${k} — unknown age "${a}" in "${lang}"`);
+      }
       if (lang === BASE) continue;
-      for (const k of Object.keys(base)) if (!(k in table)) report(`${ns}:${k} — missing in "${lang}"`);
+      for (const k of Object.keys(base)) {
+        if (!(k in table)) report(`${ns}:${k} — missing in "${lang}"`);
+        else if (isAged(base[k]) || isAged(table[k])) {
+          const ages = (v) => (isAged(v) ? Object.keys(v).sort().join(',') : '-');
+          if (ages(base[k]) !== ages(table[k])) report(`${ns}:${k} — age versions differ: ${BASE} [${ages(base[k])}] vs ${lang} [${ages(table[k])}]`);
+        }
+      }
       for (const k of Object.keys(table)) if (!(k in base)) report(`${ns}:${k} — in "${lang}" but not in "${BASE}"`);
     }
   }
@@ -69,9 +63,9 @@ async function check() {
     }
   }
 
-  const langs = new Set(Object.values(all).flatMap((l) => Object.keys(l)));
-  const count = Object.values(all).reduce((n, l) => n + Object.keys(l[BASE] || {}).length, 0);
-  console.log(`${count} lines × ${langs.size} languages (${[...langs].join(', ')}) in ${Object.keys(all).length} namespaces`);
+  const langs = [...new Set(Object.values(all).flatMap((l) => Object.keys(l)))];
+  const counts = langs.map((l) => `${l}: ${expand(all, l).length}`).join(', ');
+  console.log(`${Object.keys(all).length} namespaces; spoken clips per language — ${counts}`);
   if (problems) {
     console.log(`${problems} problem(s)`);
     process.exit(1);
@@ -79,37 +73,7 @@ async function check() {
   console.log('all good');
 }
 
-async function exportLang(lang) {
-  const all = await loadAll();
-  const rows = [];
-  for (const [ns, langs] of Object.entries(all)) {
-    for (const [key, v] of Object.entries(langs[lang] || {})) {
-      if (Array.isArray(v)) v.forEach((text, i) => rows.push({ id: `${ns}:${key}.${i}`, text }));
-      else rows.push({ id: `${ns}:${key}`, text: v });
-    }
-  }
-  console.log(JSON.stringify(rows, null, 2));
-}
-
-async function manifest(lang) {
-  const root = join(WEB, 'audio', lang);
-  const ids = [];
-  const walk = async (dir) => {
-    for (const e of await readdir(dir, { withFileTypes: true })) {
-      if (e.isDirectory()) await walk(join(dir, e.name));
-      else if (e.name.endsWith('.mp3')) {
-        const rel = relative(root, join(dir, e.name)).replace(/\.mp3$/, '').split(/[\\/]/);
-        ids.push(`${rel[0]}:${rel.slice(1).join('/')}`);
-      }
-    }
-  };
-  if (existsSync(root)) await walk(root);
-  await writeFile(join(root, 'manifest.json'), JSON.stringify(ids.sort(), null, 1) + '\n');
-  console.log(`${ids.length} recorded lines for "${lang}"`);
-}
-
 const [cmd, arg] = process.argv.slice(2);
 if (cmd === 'check') await check();
-else if (cmd === 'export' && arg) await exportLang(arg);
-else if (cmd === 'manifest' && arg) await manifest(arg);
-else console.log('usage: node tools/lines.mjs check | export <lang> | manifest <lang>');
+else if (cmd === 'export' && arg) console.log(JSON.stringify(expand(await loadAll(), arg), null, 2));
+else console.log('usage: node tools/lines.mjs check | export <lang>');

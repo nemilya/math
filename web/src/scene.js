@@ -16,6 +16,9 @@ import { mic, voices, playBlob } from './recorder.js';
 
 const abortError = () => new DOMException('scene closed', 'AbortError');
 
+// Once the microphone turned out to be unavailable, don't keep offering it this session.
+let micUnavailable = false;
+
 export class Scene {
   constructor({ ns, stage, dock, keeper, voice, i18n, store, signal, speed = 1 }) {
     Object.assign(this, { ns, stage, dock, keeper, voice, i18n, store, signal, speed });
@@ -23,6 +26,7 @@ export class Scene {
     this.lastActivity = performance.now();
     this.cleanups = [];
     this._talkGen = 0;
+    this._hintsSaid = new Set();
     this._act = () => (this.lastActivity = performance.now());
     stage.addEventListener('pointerdown', this._act);
     dock.addEventListener('pointerdown', this._act);
@@ -67,10 +71,16 @@ export class Scene {
     return k.includes(':') ? k : `${this.ns}:${k}`;
   }
 
+  // The child's age band: 'small' (4–6), 'middle' (7–9) or 'big' (10–12).
+  get age() {
+    return this.i18n.age;
+  }
+
   async say(k, { polite = false } = {}) {
     this.check();
-    if (polite) await this.guard((res) => this.voice.idle().then(res));
     const line = this.i18n.line(this.key(k));
+    if (!line.text) return; // e.g. a line that exists only for older children
+    if (polite) await this.guard((res) => this.voice.idle().then(res));
     await this.voice.speak(line.text, { id: line.id });
     this.check();
   }
@@ -285,17 +295,25 @@ export class Scene {
     return this.withHints(p, hints);
   }
 
-  // If the child is idle for a while, Lumo offers the next hint (never the answer first).
-  withHints(p, hints, { first = 10000, every = 16000 } = {}) {
-    if (!hints?.length) return p;
+  // If the child is quiet for a while, Lumo offers the next hint (never the answer first).
+  // Each hint is said at most once per scene — then Lumo waits patiently. (Tapping Lumo
+  // repeats the last line.) Parents can switch idle hints off altogether.
+  withHints(p, hints, { first = 12000, every = 22000 } = {}) {
+    const fresh = (hints || []).map((k) => this.key(k)).filter((k) => !this._hintsSaid.has(k));
+    if (!fresh.length || this.store.data.hints === false) return p;
     let i = 0;
     this._act();
     const id = setInterval(() => {
       if (this.signal.aborted || this.voice.speaking) return;
+      if (document.body.classList.contains('settings-open')) return this._act();
       const idle = (performance.now() - Math.max(this.lastActivity, this.voice.lastEndAt)) * this.speed;
       if (idle < (i === 0 ? first : every)) return;
-      this.say(hints[Math.min(i, hints.length - 1)]).catch(() => {});
-      i++;
+      const k = fresh[i++];
+      if (!this._hintsSaid.has(k)) {
+        this._hintsSaid.add(k);
+        this.say(k).catch(() => {});
+      }
+      if (i >= fresh.length) clearInterval(id);
     }, 400);
     return p.finally(() => clearInterval(id));
   }
@@ -346,9 +364,18 @@ export class Scene {
     for (const r of await voices.list(starId)) await this.play(r.blob);
   }
 
-  // Invite the child to explain something out loud. Returns the saved recording or null.
+  // Can the child record their voice here? (Parents may turn it off; some browsers can't.)
+  micAvailable() {
+    return this.store.data.mic !== false && !micUnavailable && mic.supported();
+  }
+
+  // Invite the child to explain something out loud. Nothing is analysed or sent anywhere:
+  // the child hears their own explanation back, and it is kept on this device next to the
+  // star — grown-ups can listen to it in the album (settings). Returns the recording or null.
   async record(starId, { prompt = 'common:record.prompt' } = {}) {
+    if (this.store.data.mic === false || micUnavailable) return null;
     if (!mic.supported()) {
+      micUnavailable = true;
       await this.say('common:record.nomic');
       return null;
     }
@@ -368,6 +395,7 @@ export class Scene {
         this.hush();
         await mic.start();
       } catch {
+        micUnavailable = true;
         await this.say('common:record.denied');
         return saved;
       }
@@ -385,6 +413,8 @@ export class Scene {
         saved = await voices.save(starId, blob);
         this.celebrate();
         await this.say('common:record.saved');
+        await this.play(blob); // the child hears their own explanation — that is the point
+        await this.say('common:record.after');
       }
     }
   }

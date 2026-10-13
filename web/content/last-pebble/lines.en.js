@@ -4,7 +4,10 @@ export default {
   rules2: 'Whoever takes the last pebble wins.',
   'start.first': 'You go first. Tap the pebbles you want to take. Then tap the check mark.',
   yourturn: ['Your turn.', 'Now you.', 'Over to you.'],
-  'tap.hint': 'Tap a pebble to take it. One, two or three.',
+  'tap.hint': {
+    small: "Tap a pebble and it's yours. You can take one, two or three.",
+    middle: 'Tap a pebble to take it. One, two or three.',
+  },
   'confirm.hint': 'When you have chosen, tap the check mark at the bottom.',
   'toomany.3': 'No more than three at a time!',
   'toomany.4': 'No more than four at a time!',
@@ -33,18 +36,38 @@ export default {
   'win.kid': ['The last pebble is yours! You win!', 'Hooray! This win is yours!'],
   'win.lumo': ['The last pebble is mine!', 'Ha, the last one is mine!'],
 
-  hint1: "Want a clue? I'll say how many pebbles are left after my turn. Listen carefully.",
+  hint1: {
+    small: "A clue: I'll say how many pebbles are left. Listen!",
+    middle: "Want a clue? I'll say how many pebbles are left after my turn. Listen carefully.",
+    big: "A clue: I'll say how many pebbles are left after my turn. Look for the pattern.",
+  },
   'hint2.4': "All right, I'll tell you my secret. I always try to leave you four pebbles. Try leaving me four!",
   'hint2.5': 'A clue: with the old rule, the trap was four — one more than you could take. What about now?',
-  'secret.4': "That's the secret! Four is a trap. I take one, two or three — and you take all the rest.",
-  'secret.5':
-    'Five is the trap when you can take up to four! See the pattern? The trap is always one more than you may take.',
-  eight: 'Is eight a trap too? Think: from eight I take some, and you can leave me exactly four!',
+  'secret.4': {
+    small: "That's the secret! Four is a trap. However many I take, you take the rest.",
+    middle: "That's the secret! Four is a trap. I take one, two or three — and you take all the rest.",
+    big: "That's the secret! Four is a losing position for whoever moves. I take one, two or three — and you make it up to four.",
+  },
+  'secret.5': {
+    small: 'Five is the new trap! The trap is always one more than you may take.',
+    middle:
+      'Five is the trap when you can take up to four! See the pattern? The trap is always one more than you may take.',
+    big: 'Five is the losing position when you may take up to four. The pattern: the trap is one more than you may take, and all the traps are its multiples.',
+  },
+  eight: {
+    small: 'Is eight a trap too? Think about it!',
+    middle: 'Is eight a trap too? Think: from eight I take some, and you can leave me exactly four!',
+    big: 'And eight? From eight I take some, and you leave me four. So the traps are four, eight, twelve: all the multiples of four.',
+  },
 
   again: 'Play again?',
   'again.or.new': 'Play again? Or shall we try a new rule — taking up to four pebbles?',
   'menu.hint': 'The round arrow plays again. The little house goes back to the sky.',
   newrule: "New rule: now you may take up to four pebbles. Which number is the trap now? Let's find out!",
 
-  explain: 'Try to explain in your own words: why is four a trap? Tap the microphone.',
+  explain: {
+    small: 'Tell me in your own words: why is four a trap? Tap the microphone.',
+    middle: 'Try to explain in your own words: why is four a trap? Tap the microphone.',
+    big: 'Explain in your own words why the traps are exactly the multiples of four. Tap the microphone.',
+  },
 };

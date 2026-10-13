@@ -32,13 +32,18 @@ export const voices = {
     await tx('readwrite', (s) => s.put(rec));
     return rec;
   },
-  async list(star) {
+  async all() {
     try {
-      const all = (await tx('readonly', (s) => s.getAll())) || [];
-      return all.filter((r) => r.star === star).sort((a, b) => a.at - b.at);
+      return ((await tx('readonly', (s) => s.getAll())) || []).sort((a, b) => a.at - b.at);
     } catch {
       return [];
     }
+  },
+  async list(star) {
+    return (await voices.all()).filter((r) => r.star === star);
+  },
+  async remove(id) {
+    await tx('readwrite', (s) => s.delete(id));
   },
 };
 

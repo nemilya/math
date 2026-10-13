@@ -1,5 +1,5 @@
 // Lumo's voice. Three layers, best first:
-//   1. a recorded / pre-generated file  audio/<lang>/<ns>/<key>.mp3 (listed in audio/<lang>/manifest.json)
+//   1. a recorded / generated file: audio/<lang>/manifest.json maps line id → file (make voice)
 //   2. the browser's own speech synthesis (Web Speech API)
 //   3. silence + subtitles (no voice for this language on this device)
 // Scripts never care which layer is used — they just await speak().
@@ -10,11 +10,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export class Voice {
   constructor({ speed = 1, silent = false } = {}) {
+    this.silent = silent;
     this.synth = !silent && 'speechSynthesis' in window ? window.speechSynthesis : null;
     this.speed = speed;
     this.lang = 'ru';
     this.voice = null;
-    this.manifest = new Set();
+    this.manifest = {};
     this.audio = new Audio();
     this.gen = 0;
     this.speaking = false;
@@ -39,10 +40,10 @@ export class Voice {
   async setLang(lang) {
     this.lang = lang;
     this.voice = await this._pickVoice(lang);
-    this.manifest = new Set();
+    this.manifest = {};
     try {
       const r = await fetch(`audio/${lang}/manifest.json`, { cache: 'no-cache' });
-      if (r.ok) this.manifest = new Set(await r.json());
+      if (r.ok) this.manifest = await r.json();
     } catch {
       /* no recorded audio for this language yet */
     }
@@ -50,7 +51,17 @@ export class Voice {
 
   // Is there any real voice (recorded or synthesized) for the current language?
   hasVoice() {
-    return !!this.voice || this.manifest.size > 0;
+    return !!this.voice || Object.keys(this.manifest).length > 0;
+  }
+
+  // Warm the browser cache with every clip of a namespace, so Lumo answers without a pause.
+  preload(ns) {
+    const files = Object.entries(this.manifest)
+      .filter(([id]) => id.startsWith(`${ns}:`))
+      .map(([, f]) => `audio/${this.lang}/${f}`);
+    let i = 0;
+    const next = () => i < files.length && fetch(files[i++]).then(next, next);
+    for (let k = 0; k < 3; k++) next();
   }
 
   async _pickVoice(lang) {
@@ -115,7 +126,7 @@ export class Voice {
     this._emit();
     try {
       if (wasSpeaking && this.synth) await sleep(60); // Chrome drops speak() issued right after cancel()
-      if (id && this.manifest.has(id) && (await this._file(id, gen))) return;
+      if (!this.silent && id && this.manifest[id] && (await this._file(this.manifest[id], gen))) return;
       if (gen !== this.gen) return;
       if (this.voice) await this._tts(text, gen);
       else await this._silent(text, gen);
@@ -124,8 +135,7 @@ export class Voice {
     }
   }
 
-  _file(id, gen) {
-    const [ns, key] = [id.slice(0, id.indexOf(':')), id.slice(id.indexOf(':') + 1)];
+  _file(file, gen) {
     return new Promise((resolve) => {
       const a = this.audio;
       const done = (ok) => {
@@ -135,7 +145,7 @@ export class Voice {
       this._interrupt = () => done(true);
       a.onended = () => done(true);
       a.onerror = () => done(false);
-      a.src = `audio/${this.lang}/${ns}/${key}.mp3`;
+      a.src = `audio/${this.lang}/${file}`;
       a.playbackRate = 1;
       a.play().catch(() => done(gen !== this.gen));
     });

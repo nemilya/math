@@ -151,11 +151,12 @@ export default async function lastPebble(s) {
   // ----- the session -----
   drawRules();
   await s.say('hello');
-  await setup(10);
+  await setup(s.age === 'small' ? 7 : 10);
   await s.say('rules1');
   await s.say('rules2');
 
-  const sizes = { 3: [10, 11, 9, 13, 10, 11], 4: [13, 12, 11, 14] };
+  // Little ones get shorter games. (Never a multiple of the trap: the child, moving first, can always win.)
+  const sizes = s.age === 'small' ? { 3: [7, 6, 9, 7], 4: [8, 7, 9] } : { 3: [10, 11, 9, 13, 10, 11], 4: [13, 12, 11, 14] };
   const found = { 3: false, 4: false };
   let gameNo = 0;
   let lumoWins = 0;

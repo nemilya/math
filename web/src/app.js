@@ -4,10 +4,11 @@
 //                  ?fast      no voice, everything 8× faster, subtitles on (for testing)
 //                  ?reset     forget progress
 
-import { I18n, LANGS, detectLang } from './i18n.js';
+import { I18n, AGES, LANGS, pickLang } from './i18n.js';
 import { Voice } from './voice.js';
 import { Scene } from './scene.js';
 import { createKeeper } from './keeper.js';
+import { createSettings } from './settings.js';
 import { runSky } from './sky.js';
 import { store } from './store.js';
 import { sfx } from './sfx.js';
@@ -40,11 +41,10 @@ let needSubtitles = false;
 // ---------- chrome ----------
 
 $('btn-home').innerHTML = icons.home;
-$('btn-cc').innerHTML = icons.cc;
+$('btn-settings').innerHTML = icons.gear;
 
 const subtitlesOn = () => store.data.cc || needSubtitles || fast;
 const refreshCC = () => {
-  $('btn-cc').classList.toggle('on', subtitlesOn());
   subtitle.hidden = !(subtitlesOn() && voice.speaking && voice.current);
 };
 
@@ -54,33 +54,26 @@ voice.on((speaking, text) => {
   refreshCC();
 });
 
-$('btn-cc').addEventListener('click', () => {
-  store.set('cc', !store.data.cc);
-  refreshCC();
-});
 
 $('btn-home').addEventListener('click', () => {
   sfx.tap();
   goSky();
 });
 
-$('btn-lang').addEventListener('click', () => {
-  const box = $('langs');
-  box.hidden = !box.hidden;
-  if (box.hidden) return;
-  box.innerHTML = '';
-  for (const l of LANGS) {
-    const b = document.createElement('button');
-    b.textContent = l.name;
-    b.className = l.id === i18n.lang ? 'on' : '';
-    b.addEventListener('click', async () => {
-      box.hidden = true;
-      store.set('lang', l.id);
-      await setLang(l.id);
-      if (screen !== 'start') goSky();
-    });
-    box.appendChild(b);
-  }
+// Grown-ups' settings: age, language, hints, subtitles, microphone, the album of recordings.
+const settings = createSettings({
+  host: $('settings'),
+  i18n,
+  store,
+  async onChange(what) {
+    if (what === 'age') i18n.age = store.data.age;
+    if (what === 'cc') refreshCC();
+    if (what === 'reset' || (what === 'mic' && screen === 'sky')) goSky();
+  },
+});
+$('btn-settings').addEventListener('click', () => {
+  sfx.tap();
+  settings.open();
 });
 
 // Tap Lumo: hear the last thing again. (Nothing on screen needs reading — so
@@ -92,11 +85,41 @@ keeper.el.addEventListener('click', () => {
   else voice.repeat();
 });
 
+// The language switcher (EN / RU in the top bar), as in nemilya/education: the choice is
+// remembered and put into the address, so a shared link opens in the same language.
+function drawLangs() {
+  const box = $('langs');
+  box.replaceChildren(
+    ...LANGS.map((l) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.lang = l.id;
+      b.title = l.name;
+      b.textContent = l.id.toUpperCase();
+      b.setAttribute('aria-pressed', String(l.id === i18n.lang));
+      return b;
+    }),
+  );
+}
+$('langs').addEventListener('click', async (e) => {
+  const l = e.target.closest('button')?.dataset.lang;
+  if (!l || l === i18n.lang) return;
+  sfx.tap();
+  store.set('lang', l);
+  const u = new URL(location.href);
+  u.searchParams.set('lang', l);
+  history.replaceState(null, '', u);
+  await setLang(l);
+  if (screen !== 'start') goSky();
+});
+
 async function setLang(lang) {
   document.documentElement.lang = lang;
-  $('btn-lang').textContent = lang.toUpperCase();
   i18n.lang = lang;
+  drawLangs();
   await Promise.all([i18n.load('common'), i18n.load('sky'), voice.setLang(lang)]);
+  voice.preload('common');
+  voice.preload('sky');
   needSubtitles = !voice.hasVoice();
   refreshCC();
 }
@@ -144,6 +167,7 @@ async function goAdventure(id) {
   const wasLit = store.isLit(id);
   const s = newScene(id);
   try {
+    voice.preload(id);
     const [mod] = await Promise.all([star.load(), i18n.load(id)]);
     s.check();
     await mod.default(s);
@@ -169,7 +193,8 @@ function watchOrientation() {
 async function start() {
   drawBackground();
   watchOrientation();
-  await setLang(params.get('lang') || store.data.lang || detectLang());
+  i18n.age = AGES.includes(store.data.age) ? store.data.age : 'middle';
+  await setLang(pickLang(params.get('lang'), store.data.lang));
   const wake = async () => {
     if (screen !== 'start') return;
     screen = 'waking';

@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="theme-color" content="#0b1026">
-  <title>Лумо — небо вопросов</title>
+  <title>Lumo — Sky of Questions</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='12' fill='%23ffd36b'/%3E%3Ccircle cx='22' cy='5' r='3' fill='%23fffbe8'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -37,10 +38,10 @@
 
   <div id="topbar">
     <button id="btn-home" class="btn small" hidden aria-label="Home"></button>
-    <button id="btn-cc" class="btn small" aria-label="Subtitles"></button>
-    <button id="btn-lang" class="btn small lang" aria-label="Language"></button>
+    <div id="langs" class="langs" role="group" aria-label="Language"></div>
+    <button id="btn-settings" class="btn small" aria-label="Settings for grown-ups"></button>
   </div>
-  <div id="langs" hidden></div>
+  <div id="settings" hidden></div>
 
   <div id="keeper" class="center asleep" role="button" aria-label="Lumo"></div>
 

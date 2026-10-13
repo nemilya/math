@@ -1,66 +1,68 @@
-# Как написать новое приключение
+# Writing a new adventure
 
-Приключение — это одна красивая идея, которую ребёнок находит сам, руками,
-вместе с Лумо. 5–10 минут. Сначала прочитайте [VISION.md](VISION.md) и
-[KEEPER.md](KEEPER.md) — там дух проекта и голос персонажа.
+*Русская версия: [ru/AUTHORING.md](ru/AUTHORING.md)*
 
-## 1. Начните с вопроса, а не с темы
+An adventure is one beautiful idea that the child finds by themselves, with their hands,
+together with Lumo. 5–10 minutes. Read [VISION.md](VISION.md) and [KEEPER.md](KEEPER.md)
+first — they hold the spirit of the project and the character's voice.
 
-Плохо: «Тема: площадь треугольника».
-Хорошо: «Сколько места в коробке занимает треугольник?»
+## 1. Start with a question, not a topic
 
-Хороший вопрос:
+Bad: "Topic: area of a triangle".
+Good: "How much of the box does the triangle take up?"
 
-* понятен пятилетнему без единого термина;
-* ответ на него *не очевиден* (или очевиден, но непонятно — почему);
-* у него есть красивое «почему» — одна идея, одна линия, один поворот;
-* он ведёт к следующему вопросу, на который ответа у нас нет.
+A good question:
 
-Источники: эссе Локхарта (задачи прямо из текста — см. банк идей в
-[ROADMAP.md](ROADMAP.md)), история математики, игры, узоры в природе.
+* makes sense to a five-year-old without a single term;
+* has an answer that is *not* obvious (or obvious, but not why);
+* has a beautiful "why" — one idea, one line, one turn;
+* leads to the next question, one we don't have an answer to.
 
-## 2. Набросайте драматургию
+Sources: Lockhart's essay (problems straight from the text — see the idea bank in
+[ROADMAP.md](ROADMAP.md)), the history of mathematics, games, patterns in nature.
 
-Почти каждое приключение проходит такие шаги:
+## 2. Sketch the dramaturgy
 
-1. **Мир.** Лумо рисует светом простую картинку. («Вот коробка. В ней живёт треугольник».)
-2. **Вопрос и догадка.** Ребёнок выбирает картинку-догадку. Любая догадка — «интересная».
-3. **Игра.** Ребёнок что-то двигает и замечает закономерность.
-4. **Тупик и подсказки.** Лумо даёт подумать; подсказки — по одной, только при бездействии.
-5. **Идея («ага!»).** Одно движение делает всё очевидным. Лумо вспыхивает.
-6. **Почему.** Короткое объяснение словами Лумо; память о догадке ребёнка.
-7. **Проверка свободой.** «Двигай как хочешь — фокус всегда работает?»
-8. **Трещина.** Случай, где идея ломается, → новый вопрос на небо (`s.unlock`).
-9. **Объяснение ребёнка.** `s.record(...)` — «расскажи своими словами».
+Almost every adventure goes through these steps:
 
-## 3. Файлы
+1. **The world.** Lumo draws a simple picture with light. ("Here is a box. A triangle lives in it.")
+2. **Question and guess.** The child picks a picture-guess. Every guess is "interesting".
+3. **Play.** The child moves something and notices a pattern.
+4. **Stuck, and hints.** Lumo gives time to think; hints come one at a time, only on silence.
+5. **The idea ("aha!").** One move makes everything obvious. Lumo flashes.
+6. **Why.** A short explanation in Lumo's words; Lumo remembers the child's guess.
+7. **Testing by freedom.** "Move it however you like — does the trick always work?"
+8. **The crack.** A case where the idea breaks → a new question for the sky (`s.unlock`).
+9. **The child's explanation.** `s.record(...)` — "tell it in your own words".
+
+## 3. Files
 
 ```
 web/content/my-adventure/
-  script.js        сценарий
-  lines.ru.js      реплики
-  lines.en.js      реплики на другом языке (можно позже — подставится запасной)
+  script.js        the script
+  lines.en.js      lines (English is the main language)
+  lines.ru.js      lines in another language
 ```
 
-И звезда в `web/content/stars.js`:
+A star in `web/content/stars.js`:
 
 ```js
 { id: 'my-adventure', kind: 'adventure', at: [x, y], load: () => import('./my-adventure/script.js') },
 { id: 'my-open-question', kind: 'question', at: [x, y], from: 'my-adventure' },
 ```
 
-И название + вопрос в `web/content/sky/lines.<lang>.js`:
+A name and a question in `web/content/sky/lines.<lang>.js`:
 
 ```js
-'my-adventure.name': 'Короткое название. И вопрос одной фразой?',
-'my-open-question.ask': 'Открытый вопрос, который появится после приключения.',
+'my-adventure.name': 'A short name. And the question in one sentence?',
+'my-open-question.ask': 'An open question that appears after the adventure.',
 ```
 
-## 4. Шаблон сценария
+Then `make check` and `make voice`.
+
+## 4. Script template
 
 ```js
-import { pts, clamp, set } from '../../src/svg.js';
-
 export default async function myAdventure(s) {
   const g = s.layer();
   const shape = s.el('circle', { cx: 500, cy: 300, r: 120, class: 'line' }, g);
@@ -71,6 +73,7 @@ export default async function myAdventure(s) {
   const handle = s.handle(g);
   handle.moveTo(620, 300);
   let moved = 0;
+  // make it draggable *before* Lumo says "pull it" — children grab straight away
   const d = s.drag(handle, { move: (p) => { moved++; handle.moveTo(p.x, p.y); } });
   await s.say('pull');
   await s.until(() => moved > 30, { hints: ['pull.hint'] });
@@ -78,52 +81,68 @@ export default async function myAdventure(s) {
 
   s.celebrate(500, 300);
   await s.say('aha');
-  s.complete();                     // звезда зажжётся
-  s.unlock('my-open-question');     // новый вопрос на небе
+  s.complete();                     // the star lights up
+  s.unlock('my-open-question');     // a new question in the sky
   await s.record('my-adventure', { prompt: 'explain' });
 }
 ```
 
-### Словарь сцены
+### Scene vocabulary
 
-| Метод | Что делает |
+| Method | What it does |
 |---|---|
-| `say(key)` | Лумо говорит реплику; ждёт окончания |
-| `talk([keys])` | говорит «в фоне»; следующая `talk` или тап прерывает |
-| `layer()`, `el(tag, attrs, parent)` | SVG-слои и элементы (координаты 1000×600) |
-| `draw(el, ms)` | нарисовать линию «от руки» |
-| `animate(el, prop, from, to, ms)`, `fadeIn`, `fadeOut`, `tween(ms, fn)` | анимации |
-| `handle(parent)` | светящаяся точка, которую можно тянуть (`moveTo`, `show`) |
-| `drag(el, { start, move, end })` | перетаскивание; возвращает `{ active, stop() }` |
-| `tap(targets)`, `tapPoint(area)` | ждать нажатия (на элемент / в точку) |
-| `choose([{ id, icon \| svg }])` | кнопки-картинки внизу, возвращает `id` |
-| `until(pred, { hints })` | ждать, пока условие станет истинным |
-| `wait(ms)` | пауза |
-| `celebrate(x, y)`, `sparkle(x, y)`, `mood('thinking')` | эмоции Лумо |
-| `record(starId, { prompt })` | ребёнок записывает объяснение |
-| `complete()`, `unlock(id)` | зажечь звезду, открыть вопрос |
-| `remember(k, v)`, `recall(k)` | запомнить что-то о ребёнке (например, догадку) |
+| `say(key)` | Lumo says a line; waits until it ends. An empty line (no version for this age) is skipped |
+| `talk([keys])` | speaks "in the background"; the next `talk` or a tap interrupts |
+| `layer()`, `el(tag, attrs, parent)` | SVG layers and elements (coordinates 1000×600) |
+| `draw(el, ms)` | draw a line "by hand" |
+| `animate(el, prop, from, to, ms)`, `fadeIn`, `fadeOut`, `tween(ms, fn)` | animations |
+| `handle(parent)` | a glowing point that can be dragged (`moveTo`, `show`) |
+| `drag(el, { start, move, end })` | dragging; returns `{ active, stop() }` |
+| `tap(targets)`, `tapPoint(area)` | wait for a tap (on an element / at a point) |
+| `choose([{ id, icon \| svg }])` | picture buttons at the bottom; returns `id` |
+| `until(pred, { hints })` | wait until a condition holds |
+| `wait(ms)` | pause |
+| `celebrate(x, y)`, `sparkle(x, y)`, `mood('thinking')` | Lumo's emotions |
+| `record(starId, { prompt })` | the child records an explanation (skipped if the microphone is off/unavailable) |
+| `micAvailable()` | can the child record here? — to show or hide a microphone button |
+| `complete()`, `unlock(id)` | light the star, open a question |
+| `remember(k, v)`, `recall(k)` | remember something about the child (e.g. their guess) |
+| `age` | `'small' \| 'middle' \| 'big'` |
 
-Классы оформления: `line`, `shape warm|cool|mint|ghost`, `piece warm|cool`, `cut`,
-`wedge right|wide|narrow`, `paper`, `diag-a|diag-b`, `dot` — см. `style.css`.
+Style classes: `line`, `shape warm|cool|mint|ghost`, `piece warm|cool`, `cut`,
+`wedge right|wide|narrow`, `paper`, `diag-a|diag-b`, `dot` — see `style.css`.
 
-## 5. Реплики
+## 5. Lines
 
-* Одно предложение — одна мысль. Длинная реплика = несколько коротких.
-* Без терминов, пока они не нужны. Без «правильно/неправильно».
-* **Без рода ребёнка** (см. [KEEPER.md](KEEPER.md#грамматика-важно-для-русского)).
-* Повторяющиеся ситуации — массивом вариантов.
-* Каждая подсказка — шаг, а не ответ: сначала «куда смотреть», потом «что попробовать».
+* One sentence — one thought. A long line = several short ones.
+* No terms until they are needed. No "right/wrong".
+* **No grammatical gender for the child** (see [KEEPER.md](KEEPER.md#grammar-important-for-russian)).
+* Repeated situations — an array of variants.
+* Each hint is a step, not the answer: first "where to look", then "what to try".
+* **Age versions** where the words should differ:
 
-Проверка: `npm run check`.
+```js
+halves: {
+  small: 'The triangle cuts each part slantwise — exactly in half.',
+  middle: 'In each part, a side of the triangle runs slantwise, corner to corner. It cuts that part exactly in half.',
+  big: 'Now each side of the triangle is a diagonal of a small rectangle. And a diagonal cuts a rectangle exactly in half.',
+},
+formula: { big: "By the way, that's where the famous rule comes from..." },   // only for 10–12
+```
 
-## 6. Чек-лист «дух книги»
+  Little ones: shorter, simpler, a bit of magic. Older ones: the real names and a bit of
+  history. The *idea* and the order stay the same.
 
-- [ ] Ребёнок может пройти всё, не умея читать.
-- [ ] Вопрос задаётся до того, как дан ответ; есть место для догадки.
-- [ ] Ребёнок сам *делает* ключевое движение (а не смотрит, как делает Лумо).
-- [ ] Есть «почему», а не только «что».
-- [ ] Нигде нет «неправильно», баллов, таймера.
-- [ ] В конце — новый открытый вопрос и приглашение объяснить своими словами.
-- [ ] Если упоминается человек/история — это живой рассказ, а не дата.
-- [ ] Всё работает на планшете пальцем.
+Check: `make check`. Voice: `make voice`.
+
+## 6. "Spirit of the book" checklist
+
+- [ ] The child can go through it all without being able to read.
+- [ ] The question is asked before the answer is given; there is room for a guess.
+- [ ] The child makes the key move themselves (not watches Lumo make it).
+- [ ] There is a "why", not only a "what".
+- [ ] No "wrong", no points, no timer anywhere.
+- [ ] At the end — a new open question and an invitation to explain in one's own words.
+- [ ] If a person or history is mentioned, it's a living story, not a date.
+- [ ] It works with a finger on a tablet.
+- [ ] Lines exist for every language; age versions read naturally for 5 and for 11.

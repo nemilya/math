@@ -1,10 +1,12 @@
 {
   "name": "lumo-math",
   "private": true,
-  "description": "Лумо — небо вопросов. Человечная математика для детей по мотивам «A Mathematician's Lament» Пола Локхарта.",
+  "description": "Lumo — Sky of Questions. Humane mathematics for children, inspired by Paul Lockhart's \"A Mathematician's Lament\".",
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs",
-    "check": "node tools/lines.mjs check"
+    "check": "node tools/lines.mjs check",
+    "voice": "node tools/voice.mjs",
+    "dist": "node tools/lines.mjs check && node tools/dist.mjs"
   }
 }

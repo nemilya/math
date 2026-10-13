@@ -148,6 +148,7 @@ export default async function triangleInBox(s) {
   s.celebrate(500, 290);
   await s.say('fits');
   await s.say('half');
+  await s.say('formula'); // only older children hear where the school formula comes from
   await s.fadeOut(flips, 500);
   flips.innerHTML = '';
   flips.style.opacity = '';

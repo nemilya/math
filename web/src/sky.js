@@ -54,11 +54,13 @@ export async function runSky(s, { stars, justLit }) {
   for (const st of stars) if (isVisible(st, store)) draw(st);
   for (const m of store.data.mine) draw({ ...m, kind: 'mine' });
 
-  // "Ask your own question" — the child's questions become stars too.
+  // "Ask your own question" — the child's questions become stars too (needs the microphone).
+  const canRecord = s.micAvailable();
   const plus = s.el('g', { class: 'plus', transform: 'translate(62 62)' }, g);
   s.el('circle', { r: 32, class: 'ring' }, plus);
   s.el('path', { d: starPath(0, 0, 20, 5, 4), class: 'body' }, plus);
   s.el('circle', { r: 44, fill: 'transparent' }, plus);
+  plus.style.display = canRecord ? '' : 'none';
 
   // ----- greeting -----
   if (justLit) {
@@ -93,18 +95,18 @@ export async function runSky(s, { stars, justLit }) {
   const say = (st) =>
     st.kind === 'adventure'
       ? [`${st.id}.name`]
-      : [`${st.id}.ask`, st.far ? 'far.note' : 'question.invite'];
+      : [`${st.id}.ask`, st.far ? 'far.note' : s.micAvailable() ? 'question.invite' : 'question.think'];
 
   for (;;) {
     const targets = new Map();
     for (const [id, n] of nodes) targets.set(n.g, { type: 'star', id });
-    targets.set(plus, { type: 'plus' });
+    if (canRecord) targets.set(plus, { type: 'plus' });
 
     const acts = [];
     if (sel) {
       const hasIdeas = sel.g.classList.contains('has-ideas');
       if (sel.star.kind === 'adventure') acts.push({ id: 'play', icon: 'play', cls: 'big go' });
-      else if (sel.star.kind === 'question') acts.push({ id: 'mic', icon: 'mic', cls: 'big rec' });
+      else if (sel.star.kind === 'question' && s.micAvailable()) acts.push({ id: 'mic', icon: 'mic', cls: 'big rec' });
       if (hasIdeas) acts.push({ id: 'listen', icon: 'listen' });
     }
     for (const [b, id] of s.buttons(acts)) targets.set(b, { type: 'act', id });

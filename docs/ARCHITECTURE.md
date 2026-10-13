@@ -1,137 +1,174 @@
-# Как это устроено
+# How it works
 
-Прототип — статический веб-сайт без сборки и без зависимостей: чистый HTML + CSS +
-JavaScript-модули + SVG. Его можно открыть с любого статического хостинга
-(GitHub Pages, Netlify, просто папка на сервере) и на любом устройстве с браузером.
+*Русская версия: [ru/ARCHITECTURE.md](ru/ARCHITECTURE.md)*
+
+The portal is a static website with no build step and no runtime dependencies: plain HTML +
+CSS + JavaScript modules + SVG. It runs from any static host (any subfolder) on any device
+with a browser.
 
 ```
 web/
-  index.html            сцена (SVG 1000×600), док с кнопками, Лумо, верхняя панель
-  style.css             весь визуальный стиль
-  src/                  движок (общий для всех приключений)
-    app.js              запуск и экраны: старт → небо → приключение → небо
-    scene.js            «язык сцен» — всё, чем пишутся приключения
-    sky.js              небо вопросов (главный экран)
-    keeper.js           Лумо: SVG-персонаж и его состояния
-    voice.js            голос: записи → синтез речи браузера → тишина + субтитры
-    i18n.js             языки и реплики
-    recorder.js         голос ребёнка: запись и хранение (только на устройстве)
-    store.js            что ребёнок исследовал (localStorage)
-    sfx.js              звуки, синтезированные на лету (WebAudio)
-    svg.js, ui.js       мелкие помощники: геометрия, иконки
-  content/              всё, что растёт
-    stars.js            карта неба: какие звёзды где и что откуда появляется
-    common/             общие реплики (запись голоса, пробуждение)
-    sky/                реплики неба + названия и вопросы всех звёзд
-    <приключение>/
-      script.js         сценарий
-      lines.ru.js       реплики по-русски
-      lines.en.js       реплики по-английски
-  audio/<lang>/         (необязательно) записанные реплики + manifest.json
+  index.html            the stage (SVG 1000×600), button dock, Lumo, top bar
+  style.css             all the visual style
+  src/                  the engine (shared by all adventures)
+    app.js              start-up and screens: start → sky → adventure → sky; language switcher
+    scene.js            the "scene language" every adventure is written in
+    sky.js              the sky of questions (home screen)
+    keeper.js           Lumo: the SVG character and his states
+    voice.js            voice: generated files → browser speech → silence + subtitles
+    i18n.js             languages, age versions of lines
+    settings.js         the grown-ups' panel (gear): age, hints, subtitles, microphone, album
+    recorder.js         the child's voice: recording and storage (on this device only)
+    store.js            what the child explored + settings (localStorage)
+    sfx.js              little sounds synthesised on the fly (WebAudio)
+    svg.js, ui.js       small helpers: geometry, icons
+  content/              everything that grows
+    stars.js            the sky map: which stars are where and what appears after what
+    common/             shared lines (waking up, recording)
+    sky/                sky lines + names and questions of every star
+    <adventure>/
+      script.js         the script
+      lines.en.js       lines in English (the main language)
+      lines.ru.js       lines in Russian
+  audio/<lang>/         Lumo's voice: <hash>.mp3 + manifest.json (line id → file)
 tools/
-  serve.mjs             локальный сервер
-  lines.mjs             проверка/экспорт реплик, манифест аудио
+  serve.mjs             local server
+  lines.mjs             check / export lines
+  voice.mjs             voice all lines (Gemini TTS via OpenRouter)
+  dist.mjs              build the hosting folder
+  lib/                  shared by tools: lines, OpenRouter client
+voice.config.json       Lumo's voice: model, voice, manner per language
+Makefile                make serve | check | voice | dist
 ```
 
-## Главная идея: движок отдельно, содержание отдельно
+## The key idea: engine apart from content
 
-**Движок** (`src/`) почти не меняется. **Содержание** (`content/`) растёт
-бесконечно: новое приключение — это новая папка и одна строка в `stars.js`.
-Перевод на новый язык — это новые файлы `lines.<lang>.js`, сценарии не трогаем.
+The **engine** (`src/`) rarely changes. The **content** (`content/`) grows without limit:
+a new adventure is a new folder plus one line in `stars.js`. A new language is new
+`lines.<lang>.js` files; scripts stay untouched.
 
-## Язык сцен
+## The scene language
 
-Приключение — это асинхронная функция, которая читается как сценарий спектакля:
+An adventure is an async function that reads like a play script:
 
 ```js
 export default async function (s) {
   const box = s.el('rect', { x: 200, y: 110, width: 600, height: 360, class: 'line' });
-  await s.say('look');                       // Лумо говорит (на языке ребёнка)
-  await s.draw(box, 1100);                   // линия рисуется светом
-  const guess = await s.choose([...]);       // кнопки-картинки
-  const d = s.drag(handle, { move: (p) => { ... } });   // ребёнок двигает
+  await s.say('look');                       // Lumo speaks (in the child's language and age)
+  await s.draw(box, 1100);                   // the line is drawn with light
+  const guess = await s.choose([...]);       // picture buttons
+  const d = s.drag(handle, { move: (p) => { ... } });   // the child moves something
   await s.until(() => travel > 500, { hints: ['drag.hint1', 'drag.hint2'] });
-  s.celebrate(x, y);                         // вспышка Лумо + искры + звон
-  s.unlock('pyramid-in-cube');               // повесить новый вопрос на небо
-  await s.record('triangle-in-box');         // ребёнок объясняет своим голосом
+  s.celebrate(x, y);                         // Lumo flashes + sparkles + chime
+  s.unlock('pyramid-in-cube');               // hang a new question in the sky
+  await s.record('triangle-in-box');         // the child explains in their own voice
 }
 ```
 
-Ключевые свойства:
+Key properties:
 
-* **Подсказки по бездействию.** `until`, `tap`, `choose` принимают `hints`. Если ребёнок
-  ничего не делает ~10 секунд (и Лумо молчит), звучит первая подсказка, потом
-  следующая. Подсказки идут от мягкой к конкретной; ответ — только в самом конце.
-* **Всё отменяемо.** Нажал «домик» — сценарий прерывается в любой точке
-  (`AbortError`), все слушатели и анимации убираются.
-* **Координаты сцены** всегда 1000×600, на любом экране. Сцена масштабируется сама.
+* **Hints on silence, once each.** `until`, `tap` and `choose` take `hints`. If the child does
+  nothing for ~12 seconds (and Lumo is quiet), the first hint plays; later the next one. Each
+  hint key is said **at most once per scene**, after that Lumo waits. Grown-ups can switch
+  idle hints off. Tapping Lumo always repeats the last line.
+* **Everything is cancellable.** Press "home" — the script stops at any point (`AbortError`);
+  all listeners and animations are removed.
+* **Stage coordinates** are always 1000×600 on any screen; the stage scales itself.
+* **Age.** `s.age` is `'small' | 'middle' | 'big'` — for the rare case where the *behaviour*
+  should differ (e.g. shorter pebble games for little ones). Words differ through lines.
 
-Полный список — в шапке [`web/src/scene.js`](../web/src/scene.js) и в
-[AUTHORING.md](AUTHORING.md).
+Full list — at the top of [`web/src/scene.js`](../web/src/scene.js) and in [AUTHORING.md](AUTHORING.md).
 
-## Голос
+## Lines, languages and ages
 
-Три слоя, лучший доступный используется автоматически:
+* Lines: `content/<ns>/lines.<lang>.js` — an object `key → value`, where the value is
+  * `'text'` — the same for everyone;
+  * `['a', 'b']` — variants, Lumo picks one;
+  * `{ small, middle, big }` — versions per age band. A missing band falls back to `middle`;
+    a line with no `middle` and no version for this age is simply not said
+    (e.g. `formula: { big: '...' }` — only older children hear where the formula comes from).
+* **English is the main language.** `make check` verifies that every language has every line
+  of the English files, with the same age versions, and that scripts use only existing lines.
+* If a line is missing in the child's language, English is used, then Russian (with a warning).
+* **Language** — as in `nemilya/education`: `?lang=` → the last choice → the browser language →
+  English. The switcher (EN / RU) is in the top bar; the choice is remembered and written into
+  the address, so a shared link opens in the same language.
+* A new language: add it to `LANGS` in `src/i18n.js`, add `lines.<lang>.js` files, a voice in
+  `voice.config.json`, then `make voice`.
 
-1. **Записанные файлы** `web/audio/<lang>/<ns>/<key>.mp3`, перечисленные в
-   `web/audio/<lang>/manifest.json`. Это голос актёра или заранее
-   сгенерированный нейросинтез — лучшее качество.
-2. **Синтез речи браузера** (Web Speech API). Работает сразу и на всех языках,
-   для которых в системе есть голос; качество зависит от устройства. Движок
-   выбирает лучший голос (`Natural`, `Neural`, `Premium`, `Google`...), говорит
-   по одному предложению (так спокойнее и надёжнее).
-3. **Тишина + субтитры** — если голоса нет совсем, субтитры включаются сами.
+## Voice
 
-Конвейер озвучки:
+Three layers; the best available is used automatically:
+
+1. **Generated files** `web/audio/<lang>/<hash>.mp3`, listed in `manifest.json` (line id → file).
+   This is the normal case: every line, in every language and age band, is voiced in advance.
+2. **The browser's speech synthesis** (Web Speech API) — a fallback for lines that have no
+   file yet (e.g. while writing a new adventure). Quality depends on the device.
+3. **Silence + subtitles** — if there is no voice at all, subtitles switch on by themselves.
+
+Voice ids: `ns:key`, variants `ns:key.1`, age versions `ns:key~big`, `ns:key~big.1`.
+
+Generating the voice (same approach as `nemilya/infographics` and `nemilya/education`):
 
 ```bash
-node tools/lines.mjs export ru > lines-ru.json   # [{id, text}] — сценарий для актёра или TTS
-# ... получаем файлы, кладём как web/audio/ru/<ns>/<key>.mp3
-node tools/lines.mjs manifest ru                 # обновить manifest.json
+make voice                 # or: node tools/voice.mjs [en ru] [--redo "text"] [--dry]
 ```
 
-Идентификатор реплики с вариантами — `ns:key.<номер варианта>`
-(например `last-pebble:yourturn.2`).
+* Gemini TTS through OpenRouter (`/audio/speech`), voice and character brief — `voice.config.json`.
+* The key: `OPENROUTER_API_KEY` in the environment or `OPENROUTER_API_KEY = …` in `local.mk`
+  (not in git); proxy — `OPENROUTER_PROXY`.
+* File name = hash of (model, voice, manner, text): only new or changed lines are
+  synthesised, unused files are deleted. Change the voice or the manner — everything is redone.
+* Every new clip is transcribed back (`/audio/transcriptions`) and compared with the text;
+  lost words → synthesised again (up to 3 attempts).
+* ffmpeg trims silence, normalises loudness and encodes mono MP3 (~40–60 KB per line).
+* The adventure's clips are preloaded when it starts, so Lumo answers without a pause.
 
-## Языки
+## The child's voice (microphone)
 
-* Реплики: `content/<ns>/lines.<lang>.js` — объект `ключ → строка` или
-  `ключ → [варианты]`.
-* Если реплики нет на языке ребёнка, берётся английская, потом русская (и пишется
-  предупреждение в консоль).
-* `npm run check` проверяет, что в каждом языке есть все реплики, и что сценарии не
-  ссылаются на несуществующие.
-* Язык определяется по браузеру; переключатель — кнопка `RU/EN` вверху справа
-  (она для взрослых). Новый язык = добавить его в `LANGS` в `src/i18n.js` и
-  положить файлы реплик.
+At the end of an adventure Lumo invites the child to explain the idea out loud. The recording
+is played back to the child immediately and kept **only in this browser** (IndexedDB) next to
+the star. Nothing is analysed or sent anywhere. The feedback is human: grown-ups listen in the
+**discovery album** (settings) and talk with the child. If the browser has no microphone (or
+the page is embedded somewhere that blocks it), Lumo says once "tell it to someone nearby" and
+stops offering. Grown-ups can turn the invitation off.
 
-## Данные и приватность
+Understanding the child's explanation (speech recognition + a reply from Lumo) is on the
+roadmap: it needs a server and explicit parental consent.
 
-* Прогресс (какие звёзды зажжены, догадки, свои вопросы) — `localStorage`.
-* Голос ребёнка — IndexedDB в этом же браузере. **Никуда не отправляется.**
-* Нет аналитики, нет внешних запросов, нет аккаунтов.
+## Data and privacy
 
-Если когда-нибудь появится синхронизация между устройствами или «Лумо слушает»
-(распознавание речи), это будет явная опция для родителей.
+* Progress (lit stars, guesses, own questions) and settings — `localStorage`.
+* The child's voice — IndexedDB in the same browser. **Never uploaded.**
+* No analytics, no external requests, no accounts.
 
-## Режимы для разработки
+## Hosting
 
-| URL | Что делает |
+```bash
+make dist                  # → dist/ and dist.zip
+```
+
+Upload the contents of `dist/` to any subfolder of a static host: all paths are relative,
+no server code or database. `.js` must be served as JavaScript and `.mp3` as audio (the
+default for nginx and Apache).
+
+## Dev modes
+
+| URL | What it does |
 |---|---|
-| `?lang=en` | принудительно язык |
-| `?fast` | без голоса, всё в 8 раз быстрее, субтитры включены — для тестов |
-| `?reset` | забыть прогресс и записи |
+| `?lang=en` | force a language |
+| `?fast` | no voice, everything 8× faster, subtitles on — for automated tests |
+| `?reset` | forget progress and recordings |
 
-## Почему так (а не React/Unity/видео)
+## Why this way (not React / Unity / video)
 
-* **Нет сборки** — любой автор может открыть файл, поправить реплику и обновить
-  страницу. Порог входа для учителя-автора минимальный.
-* **SVG + код вместо видео** — сцены масштабируются на любой экран, весят килобайты,
-  переводятся заменой файла реплик и остаются интерактивными. «Видео» в проекте
-  можно делать этим же движком: анимированная сцена с голосом Лумо — это и есть
-  мультфильм, который сразу существует на всех языках.
-* **Модули ES** работают во всех современных браузерах, в том числе на
-  планшетах — основном устройстве детей.
+* **No build step** — any author can open a file, change a line and reload the page.
+  The barrier for a teacher-author is as low as it gets.
+* **SVG + code instead of video** — scenes scale to any screen, weigh kilobytes, are
+  translated by swapping a lines file, and stay interactive. "Videos" in the project can be
+  made with the same engine: an animated scene with Lumo's voice *is* a cartoon that exists in
+  every language at once.
+* **ES modules** work in every modern browser, including tablets — children's main device.
 
-Когда проект вырастет, движок можно перенести в TypeScript и добавить сборку —
-формат сценариев и реплик при этом не изменится.
+When the project grows, the engine can move to TypeScript with a build step — the script and
+lines formats won't change.

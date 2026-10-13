@@ -5,7 +5,11 @@ const KEY = 'lumo.v1';
 
 const blank = () => ({
   lang: null,
-  cc: false,
+  // settings for grown-ups
+  age: 'middle', // 'small' 4–6, 'middle' 7–9, 'big' 10–12 — changes Lumo's words
+  hints: true, // Lumo offers a hint (once) when the child is quiet for a while
+  mic: true, // invite the child to explain out loud
+  cc: false, // subtitles
   greeted: false,
   lit: {}, // star id -> timestamp when first lit
   unlocked: {}, // question id -> true
@@ -57,6 +61,11 @@ export const store = {
   recall: (k) => data.mem[k],
   addMine(star) {
     data.mine.push(star);
+    save();
+  },
+  // Forget progress (stars, guesses, own questions) but keep the grown-ups' settings.
+  resetProgress() {
+    Object.assign(data, { greeted: false, lit: {}, unlocked: {}, mem: {}, mine: [] });
     save();
   },
 };

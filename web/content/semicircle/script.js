@@ -149,13 +149,11 @@ export default async function semicircle(s) {
   await s.say('why');
 
   // 4. The child's own idea first — then one student's idea.
-  await s.say('offer');
+  const canRecord = s.micAvailable();
+  await s.say(canRecord ? 'offer' : 'offer.nomic');
   const choice = await s.choose(
-    [
-      { id: 'mic', icon: 'mic', cls: 'big rec' },
-      { id: 'bulb', icon: 'bulb', cls: 'big go' },
-    ],
-    { hints: ['offer.hint'] },
+    [...(canRecord ? [{ id: 'mic', icon: 'mic', cls: 'big rec' }] : []), { id: 'bulb', icon: 'bulb', cls: 'big go' }],
+    { hints: canRecord ? ['offer.hint'] : [] },
   );
   if (choice === 'mic') {
     await s.record('semicircle', { prompt: null });
