@@ -174,6 +174,7 @@ html, body {
 
 .line { fill: none; stroke: var(--chalk); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; filter: url(#glow); }
 .line.faint { stroke-opacity: .45; }
+line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line in index.html */
 .line.dashed { stroke-dasharray: 10 12; }
 .shape { stroke-width: 4; stroke-linejoin: round; filter: url(#glow); }
 .shape.warm { fill: var(--warm-fill); stroke: var(--warm); }
@@ -183,7 +184,7 @@ html, body {
 .piece { stroke: none; }
 .piece.warm { fill: rgba(255, 196, 87, .5); }
 .piece.cool { fill: rgba(110, 170, 255, .55); }
-.cut { stroke: #fff; stroke-width: 3; stroke-dasharray: 12 10; filter: url(#glow); }
+.cut { stroke: #fff; stroke-width: 4; stroke-dasharray: 14 10; stroke-linecap: round; }
 .hit-area { fill: transparent; cursor: crosshair; }
 
 .handle .hit { fill: transparent; }
@@ -200,8 +201,8 @@ html, body {
 .wedge.narrow { fill: rgba(140, 188, 255, .45); stroke: var(--cool); }
 .wedge.right { fill: rgba(123, 224, 176, .45); stroke: var(--mint); }
 .paper { fill: #fbf6ea; stroke: #e6dcc4; stroke-width: 2; opacity: .92; }
-.diag-a { stroke: var(--rose); stroke-width: 6; stroke-linecap: round; filter: url(#glow); }
-.diag-b { stroke: var(--mint); stroke-width: 6; stroke-linecap: round; filter: url(#glow); }
+.diag-a { stroke: var(--rose); stroke-width: 6; stroke-linecap: round; }
+.diag-b { stroke: var(--mint); stroke-width: 6; stroke-linecap: round; }
 .dot { fill: var(--chalk); }
 
 .sparkle { fill: #fff2b8; }

@@ -15,6 +15,12 @@
         <feGaussianBlur stdDeviation="4" result="b"/>
         <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
+      <!-- Straight lines (a vertical cut, a horizontal diameter) have a zero-width bounding box, and a
+           filter sized from the bounding box makes them vanish. Lines get a glow sized in stage units. -->
+      <filter id="glow-line" filterUnits="userSpaceOnUse" x="-50" y="-50" width="1100" height="700">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
       <filter id="blur"><feGaussianBlur stdDeviation="3"/></filter>
       <radialGradient id="pebble" cx="35%" cy="30%" r="75%">
         <stop offset="0" stop-color="#efe8da"/>
