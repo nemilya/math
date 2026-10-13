@@ -25,3 +25,14 @@ export function button(icon, cls = '', label = '') {
   if (label) b.setAttribute('aria-label', label);
   return b;
 }
+
+// Tiny DOM builder for the grown-ups' screens: h('button', { class: 'x', onclick }, 'text', child…)
+export const h = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v != null && v !== false) e.setAttribute(k, v === true ? '' : v);
+  }
+  e.append(...kids.flat().filter((k) => k != null));
+  return e;
+};

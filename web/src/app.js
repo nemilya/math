@@ -9,6 +9,7 @@ import { Voice } from './voice.js';
 import { Scene } from './scene.js';
 import { createKeeper } from './keeper.js';
 import { createSettings } from './settings.js';
+import { runSetup } from './setup.js';
 import { runSky } from './sky.js';
 import { store } from './store.js';
 import { sfx } from './sfx.js';
@@ -101,15 +102,18 @@ function drawLangs() {
     }),
   );
 }
-$('langs').addEventListener('click', async (e) => {
-  const l = e.target.closest('button')?.dataset.lang;
-  if (!l || l === i18n.lang) return;
-  sfx.tap();
+async function chooseLang(l) {
   store.set('lang', l);
   const u = new URL(location.href);
   u.searchParams.set('lang', l);
   history.replaceState(null, '', u);
   await setLang(l);
+}
+$('langs').addEventListener('click', async (e) => {
+  const l = e.target.closest('button')?.dataset.lang;
+  if (!l || l === i18n.lang) return;
+  sfx.tap();
+  await chooseLang(l);
   if (screen !== 'start') goSky();
 });
 
@@ -195,6 +199,15 @@ async function start() {
   watchOrientation();
   i18n.age = AGES.includes(store.data.age) ? store.data.age : 'middle';
   await setLang(pickLang(params.get('lang'), store.data.lang));
+
+  // The very first launch: a grown-up picks language, age and subtitles (all preselected).
+  if (!store.data.setupDone && !fast) {
+    screen = 'setup';
+    await runSetup({ host: $('setup'), i18n, store, onLang: chooseLang });
+    i18n.age = store.data.age;
+    refreshCC();
+    screen = 'start';
+  }
   const wake = async () => {
     if (screen !== 'start') return;
     screen = 'waking';

@@ -10,6 +10,7 @@ const blank = () => ({
   hints: true, // Lumo offers a hint (once) when the child is quiet for a while
   mic: true, // invite the child to explain out loud
   cc: false, // subtitles
+  setupDone: false, // the first-launch screen (language, age, subtitles) has been shown
   greeted: false,
   lit: {}, // star id -> timestamp when first lit
   unlocked: {}, // question id -> true

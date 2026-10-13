@@ -3,6 +3,7 @@
 
 import { AGES } from './i18n.js';
 import { voices } from './recorder.js';
+import { h } from './ui.js';
 
 const T = {
   ru: {
@@ -59,15 +60,6 @@ const T = {
   },
 };
 
-const h = (tag, attrs = {}, ...kids) => {
-  const e = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
-    else if (v != null && v !== false) e.setAttribute(k, v === true ? '' : v);
-  }
-  e.append(...kids.flat().filter((k) => k != null));
-  return e;
-};
 
 export function createSettings({ host, i18n, store, onChange }) {
   let player = null;
@@ -177,6 +169,7 @@ export function createSettings({ host, i18n, store, onChange }) {
       h('section', {}, resetBox),
     );
     host.replaceChildren(panel);
+    host.classList.add('sheet');
   }
 
   host.addEventListener('click', (e) => e.target === host && close());

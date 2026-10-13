@@ -35,6 +35,9 @@ with sound on. `make help` lists all commands.
 
 ## For grown-ups
 
+* **First launch** — one short screen for a grown-up: language, the child's age, subtitles.
+  Everything is preselected (browser language, 7–9, no subtitles), so "Start" alone is fine.
+  It is shown once; afterwards the same settings live behind the gear.
 * **Language** — the EN / RU switcher in the top bar (as in the `education` project:
   `?lang=` → last choice → browser language → English; the choice goes into the address).
 * **The gear** opens the grown-ups' panel — the only place with text to read:

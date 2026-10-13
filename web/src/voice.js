@@ -15,7 +15,8 @@ export class Voice {
     this.speed = speed;
     this.lang = 'ru';
     this.voice = null;
-    this.manifest = {};
+    this.manifest = {}; // line id → file, for manifestLang
+    this.manifestLang = null;
     this.audio = new Audio();
     this.gen = 0;
     this.speaking = false;
@@ -39,14 +40,20 @@ export class Voice {
 
   async setLang(lang) {
     this.lang = lang;
-    this.voice = await this._pickVoice(lang);
+    // Drop the old language's clips right away: until the new manifest arrives Lumo uses the
+    // browser voice, never an old-language file (or a wrong folder).
     this.manifest = {};
-    try {
-      const r = await fetch(`audio/${lang}/manifest.json`, { cache: 'no-cache' });
-      if (r.ok) this.manifest = await r.json();
-    } catch {
-      /* no recorded audio for this language yet */
-    }
+    this.manifestLang = null;
+    const [voice, manifest] = await Promise.all([
+      this._pickVoice(lang),
+      fetch(`audio/${lang}/manifest.json`, { cache: 'no-cache' })
+        .then((r) => (r.ok ? r.json() : {}))
+        .catch(() => ({})), // no recorded audio for this language yet
+    ]);
+    if (this.lang !== lang) return; // another language was chosen meanwhile
+    this.voice = voice;
+    this.manifest = Array.isArray(manifest) ? {} : manifest;
+    this.manifestLang = lang;
   }
 
   // Is there any real voice (recorded or synthesized) for the current language?
@@ -58,7 +65,7 @@ export class Voice {
   preload(ns) {
     const files = Object.entries(this.manifest)
       .filter(([id]) => id.startsWith(`${ns}:`))
-      .map(([, f]) => `audio/${this.lang}/${f}`);
+      .map(([, f]) => `audio/${this.manifestLang}/${f}`);
     let i = 0;
     const next = () => i < files.length && fetch(files[i++]).then(next, next);
     for (let k = 0; k < 3; k++) next();
@@ -145,7 +152,7 @@ export class Voice {
       this._interrupt = () => done(true);
       a.onended = () => done(true);
       a.onerror = () => done(false);
-      a.src = `audio/${this.lang}/${file}`;
+      a.src = `audio/${this.manifestLang}/${file}`;
       a.playbackRate = 1;
       a.play().catch(() => done(gen !== this.gen));
     });
