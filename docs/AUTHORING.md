@@ -47,9 +47,13 @@ web/content/my-adventure/
 A star in `web/content/stars.js`:
 
 ```js
-{ id: 'my-adventure', kind: 'adventure', at: [x, y], load: () => import('./my-adventure/script.js') },
+{ id: 'my-adventure', kind: 'adventure', at: [x, y], first: ['hello', 'look'], load: () => import('./my-adventure/script.js') },
 { id: 'my-open-question', kind: 'question', at: [x, y], from: 'my-adventure' },
 ```
+
+`first` — the keys of the adventure's opening lines (2–3, in the order they are said): they are
+fetched as soon as the child taps the star, so after "play" Lumo speaks at once. `make check`
+verifies they exist.
 
 A name and a question in `web/content/sky/lines.<lang>.js`:
 

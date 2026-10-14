@@ -124,7 +124,13 @@ make voice                 # or: node tools/voice.mjs [en ru] [--redo "text"] [-
 * Every new clip is transcribed back (`/audio/transcriptions`) and compared with the text;
   lost words → synthesised again (up to 3 attempts).
 * ffmpeg trims silence, normalises loudness and encodes mono MP3 (~40–60 KB per line).
-* The adventure's clips are preloaded when it starts, so Lumo answers without a pause.
+* Loading order, so that a new visitor never sees Lumo talk in silence: first the words said
+  right after waking (the wake line, the sky's greeting, the adventures' names) — into memory;
+  then the rest of the sky's lines in the background. A tap on an adventure star fetches its
+  code and its opening lines (`first` in `stars.js`); the rest of its clips follow. Only the
+  clips of the child's age are fetched.
+* Lumo's mouth and the subtitles follow the sound itself: while a clip is still loading, he waits
+  quietly.
 
 ## The child's voice (microphone)
 

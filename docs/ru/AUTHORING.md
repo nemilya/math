@@ -47,9 +47,13 @@ web/content/my-adventure/
 И звезда в `web/content/stars.js`:
 
 ```js
-{ id: 'my-adventure', kind: 'adventure', at: [x, y], load: () => import('./my-adventure/script.js') },
+{ id: 'my-adventure', kind: 'adventure', at: [x, y], first: ['hello', 'look'], load: () => import('./my-adventure/script.js') },
 { id: 'my-open-question', kind: 'question', at: [x, y], from: 'my-adventure' },
 ```
+
+`first` — ключи первых реплик приключения (2–3, в том порядке, как они звучат): они загружаются,
+как только ребёнок нажал на звезду, — и после «плей» Лумо заговорит сразу. `make check`
+проверяет, что такие реплики есть.
 
 И название + вопрос в `web/content/sky/lines.<lang>.js`:
 
