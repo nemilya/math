@@ -199,7 +199,10 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .shape.cool { fill: var(--cool-fill); stroke: var(--cool); }
 .shape.mint { fill: rgba(123, 224, 176, .3); stroke: var(--mint); }
 .shape.ghost { fill: rgba(140, 188, 255, .12); stroke: var(--cool); stroke-dasharray: 8 10; }
-.piece { stroke: none; }
+.piece { stroke: none; transition: fill .35s ease, stroke-width .35s ease; }
+/* lit up as Lumo names the colour ("yellow is inside…") */
+.piece.warm.lit { fill: rgba(255, 196, 87, .85); stroke: var(--warm); stroke-width: 3; stroke-linejoin: round; }
+.piece.cool.lit { fill: rgba(110, 170, 255, .85); stroke: var(--cool); stroke-width: 3; stroke-linejoin: round; }
 .piece.warm { fill: rgba(255, 196, 87, .5); }
 .piece.cool { fill: rgba(110, 170, 255, .55); }
 .piece.moving { fill: rgba(120, 178, 255, .8); stroke: #dbe9ff; stroke-width: 3; stroke-linejoin: round; filter: url(#glow); }
