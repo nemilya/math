@@ -97,6 +97,11 @@ Upload the contents of `dist/` to **any subfolder** of a static host (e.g. `exam
 all paths are relative, no server code or database. `.js` must be served as JavaScript and
 `.mp3` as audio/mpeg (the default for nginx and Apache).
 
+`make dist` stamps every link to code with a version (`app.js?v=<hash>`, the same in every
+import), so after an update a visitor's browser fetches the new code as one set and never mixes
+it with modules from its cache. Only `index.html` itself may be cached for a while; if the server
+is yours, `Cache-Control: no-cache` for `.html` makes an update reach everyone at once.
+
 `make deploy` takes the target from `local.mk` (copy `local.mk.example`), e.g.
 `DEPLOY = ssh://nemilya-me/home/ilya/site/projects/math` (or `host:/path`). It uploads only what
 changed and **removes files there that are no longer in `dist/`**, so point it at a folder used
