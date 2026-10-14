@@ -4,7 +4,7 @@
 //                  ?fast      no voice, everything 8× faster, subtitles on (for testing)
 //                  ?reset     forget progress
 
-import { I18n, AGES, LANGS, pickLang } from './i18n.js';
+import { I18n, AGES, pickLang } from './i18n.js';
 import { Voice } from './voice.js';
 import { Scene } from './scene.js';
 import { createKeeper } from './keeper.js';
@@ -96,12 +96,16 @@ $('btn-home').addEventListener('click', () => {
   goSky();
 });
 
-// Settings: age, hints, subtitles, microphone, the album of recordings.
+// Settings: language, age, hints, subtitles, microphone, the album of recordings.
 const settings = createSettings({
   host: $('settings'),
   i18n,
   store,
-  async onChange(what) {
+  async onChange(what, value) {
+    if (what === 'lang') {
+      await chooseLang(value);
+      if (screen !== 'start') goSky(); // Lumo starts over in the new language
+    }
     if (what === 'age') {
       i18n.age = store.data.age;
       preloadSky();
@@ -124,22 +128,9 @@ keeper.el.addEventListener('click', () => {
   else voice.repeat();
 });
 
-// The language switcher (EN / RU in the top bar), as in nemilya/education: the choice is
-// remembered and put into the address, so a shared link opens in the same language.
-function drawLangs() {
-  const box = $('langs');
-  box.replaceChildren(
-    ...LANGS.map((l) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.lang = l.id;
-      b.title = l.name;
-      b.textContent = l.id.toUpperCase();
-      b.setAttribute('aria-pressed', String(l.id === i18n.lang));
-      return b;
-    }),
-  );
-}
+// The language is chosen on the first-launch screen and in the settings (not shown all the
+// time — it is set once). As in nemilya/education, the choice is remembered and put into the
+// address, so a shared link opens in the same language.
 async function chooseLang(l) {
   store.set('lang', l);
   const u = new URL(location.href);
@@ -147,18 +138,10 @@ async function chooseLang(l) {
   history.replaceState(null, '', u);
   await setLang(l);
 }
-$('langs').addEventListener('click', async (e) => {
-  const l = e.target.closest('button')?.dataset.lang;
-  if (!l || l === i18n.lang) return;
-  sfx.tap();
-  await chooseLang(l);
-  if (screen !== 'start') goSky();
-});
 
 function setLang(lang) {
   document.documentElement.lang = lang;
   i18n.lang = lang;
-  drawLangs();
   langReady = (async () => {
     await Promise.all([i18n.load('common'), i18n.load('sky'), voice.setLang(lang)]);
     needSubtitles = !voice.hasVoice();

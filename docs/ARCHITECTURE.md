@@ -8,7 +8,7 @@ with a browser.
 
 ```
 web/
-  index.html            the stage (SVG 1000×600), button dock, Lumo, top bar
+  index.html            the stage (SVG 1000×600), button dock, Lumo, top bar (home, settings)
   style.css             all the visual style
   src/                  the engine (shared by all adventures)
     app.js              start-up and screens: start → sky → adventure → sky; language switcher
@@ -94,8 +94,9 @@ Full list — at the top of [`web/src/scene.js`](../web/src/scene.js) and in [AU
   of the English files, with the same age versions, and that scripts use only existing lines.
 * If a line is missing in the child's language, English is used, then Russian (with a warning).
 * **Language** — as in `nemilya/education`: `?lang=` → the last choice → the browser language →
-  English. The switcher (EN / RU) is in the top bar; the choice is remembered and written into
-  the address, so a shared link opens in the same language.
+  English. It is chosen on the first-launch screen and in the settings (not shown all the time);
+  the choice is remembered and written into the address, so a shared link opens in the same
+  language.
 * A new language: add it to `LANGS` in `src/i18n.js`, add `lines.<lang>.js` files, a voice in
   `voice.config.json`, then `make voice`.
 

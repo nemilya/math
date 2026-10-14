@@ -95,10 +95,7 @@ html, body {
   z-index: 6;
 }
 
-#topbar .langs { display: flex; padding: 3px; gap: 2px; border-radius: 24px; border: 2px solid rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .08); backdrop-filter: blur(6px); }
-#topbar .langs button { min-width: 40px; height: 38px; padding: 0 8px; border: 0; border-radius: 20px; background: transparent; color: var(--chalk); font: 700 14px/1 system-ui, sans-serif; letter-spacing: .06em; cursor: pointer; opacity: .65; }
-#topbar .langs button[aria-pressed="true"] { background: rgba(255, 196, 87, .3); opacity: 1; }
-#topbar .langs button:focus-visible, .btn:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+.btn:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
 
 #btn-help {
   position: fixed;

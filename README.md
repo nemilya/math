@@ -46,9 +46,11 @@ with sound on. `make help` lists all commands.
 * **First launch** — one short screen: language, the child's age, subtitles.
   Everything is preselected (browser language, 7–9, no subtitles), so "Start" alone is fine.
   It is shown once; afterwards the same settings live behind the gear.
-* **Language** — the EN / RU switcher in the top bar (as in the `education` project:
-  `?lang=` → last choice → browser language → English; the choice goes into the address).
+* **Language** — chosen on the first-launch screen and in the settings; it is set once, so it is
+  not on screen all the time (as in the `education` project: `?lang=` → last choice → browser
+  language → English; the choice goes into the address).
 * **The gear** opens the settings — the only place with text to read:
+  * **language** — English or Russian; Lumo starts over in the sky in the new language;
   * **child's age** — 4–6, 7–9 or 10–12. Changes Lumo's words: simpler and shorter for little
     ones (and shorter games), real names (diagonal, parallelogram, multiples) and a bit of
     history (Thales, Euclid, where the triangle-area formula comes from) for older children;

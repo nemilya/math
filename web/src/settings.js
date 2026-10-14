@@ -1,7 +1,7 @@
 // The settings panel (the gear button). This is the only place in the portal with
 // words to read: the child never needs it.
 
-import { AGES } from './i18n.js';
+import { AGES, LANGS } from './i18n.js';
 import { voices } from './recorder.js';
 import { h } from './ui.js';
 
@@ -11,6 +11,7 @@ const T = {
   ru: {
     title: 'Настройки',
     close: 'Закрыть',
+    lang: 'Язык',
     age: 'Возраст ребёнка',
     ages: { small: '4–6 лет', middle: '7–9 лет', big: '10–12 лет' },
     ageNote:
@@ -41,6 +42,7 @@ const T = {
   en: {
     title: 'Settings',
     close: 'Close',
+    lang: 'Language',
     age: "Child's age",
     ages: { small: '4–6 years', middle: '7–9 years', big: '10–12 years' },
     ageNote:
@@ -169,6 +171,14 @@ export function createSettings({ host, i18n, store, onChange }) {
       'div',
       { class: 'panel', role: 'dialog', 'aria-modal': 'true', 'aria-label': L.title },
       h('header', {}, h('h2', {}, L.title), h('button', { class: 'close', 'aria-label': L.close, onclick: close }, '×')),
+      // Each language in its own name, so it can be found whatever language is on now.
+      h('section', {}, h('h3', {}, L.lang), segmented(LANGS.map((l) => [l.id, l.name]), i18n.lang, async (l) => {
+        if (l === i18n.lang) return;
+        const switched = onChange('lang', l); // switches i18n.lang at once; the voice loads meanwhile
+        render(); // the panel itself in the new language, right away
+        await switched;
+        render(); // ...and the album's star names, now that the new lines are here
+      })),
       h('section', {}, h('h3', {}, L.age), segmented(AGES.map((a) => [a, L.ages[a]]), store.data.age, (a) => {
         store.set('age', a);
         onChange('age');
