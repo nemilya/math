@@ -17,12 +17,16 @@ with the child. Everything is explained **by voice** — the child doesn't need 
 main thing the child does is find an idea with their hands and **explain it in their own words,
 in their own voice**.
 
+*Screenshots with subtitles switched on, so you can see what Lumo says. For a child, everything is spoken.*
+
 | | |
 |---|---|
-| ![Sky of questions](docs/img/sky.jpg) | ![Triangle in a box](docs/img/triangle.jpg) |
-| **The sky of questions.** Big stars are adventures, violet ones are open questions, nebulae hold what is still being built, the green "+" is the child's own question. | **Triangle in a box.** How much of the box does it take up? Guess → play → one "magic cut" → why exactly half. |
-| ![The corner in a semicircle](docs/img/semicircle.jpg) | ![The last pebble](docs/img/pebbles.jpg) |
-| **The corner in a semicircle.** The corner is always square — but why? The idea of one of Lockhart's students: turn the triangle half a turn. | **The last pebble.** A game Lumo keeps winning. Find his secret — then test it on a new rule. |
+| ![Sky of questions](docs/img/en/sky.jpg) | ![Triangle in a box](docs/img/en/triangle.jpg) |
+| **The sky of questions.** Big stars are adventures, violet ones are open questions, nebulae hold what is still being built, the green "+" is the child's own question. A star leads to new ones: the triangle opens the pyramid. | **Triangle in a box.** How much of the box does it take up? Guess → play → one "magic cut" → each part is cut exactly in half → why the triangle is half. |
+| ![A pyramid in a cube](docs/img/en/pyramid.jpg) | ![Slices like a deck of cards](docs/img/en/layers.jpg) |
+| **A pyramid in a cube** — the question Lockhart's essay ends with. Turn the glass cube, put the tip in a corner — three equal pyramids fill the cube, so each is a third. | **…wherever the tip is.** Sliced like a deck of cards, the pyramid only shifts its layers when the tip moves — so it is still a third. |
+| ![The corner in a semicircle](docs/img/en/semicircle.jpg) | ![The last pebble](docs/img/en/rules.jpg) |
+| **The corner in a semicircle.** The corner is always square — but why? One of Lockhart's students: turn the triangle half a turn — equal diagonals make a rectangle. | **The last pebble.** The rules shown with pictures as Lumo tells them; "?" shows them again. Lumo keeps winning — find his secret, then test it on a new rule. |
 
 ## Run it
 
@@ -36,6 +40,8 @@ Open it on a tablet or a computer and tap the sleeping Lumo to wake him up. Best
 with sound on. `make help` lists all commands.
 
 ## For grown-ups
+
+<img src="docs/img/en/setup.jpg" alt="First launch" width="420" align="right">
 
 * **First launch** — one short screen for a grown-up: language, the child's age, subtitles.
   Everything is preselected (browser language, 7–9, no subtitles), so "Start" alone is fine.
