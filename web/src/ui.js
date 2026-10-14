@@ -27,7 +27,7 @@ export function button(icon, cls = '', label = '') {
   return b;
 }
 
-// Tiny DOM builder for the grown-ups' screens: h('button', { class: 'x', onclick }, 'text', child…)
+// Tiny DOM builder for the settings screens: h('button', { class: 'x', onclick }, 'text', child…)
 export const h = (tag, attrs = {}, ...kids) => {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {

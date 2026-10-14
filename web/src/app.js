@@ -61,7 +61,7 @@ $('btn-home').addEventListener('click', () => {
   goSky();
 });
 
-// Grown-ups' settings: age, language, hints, subtitles, microphone, the album of recordings.
+// Settings: age, hints, subtitles, microphone, the album of recordings.
 const settings = createSettings({
   host: $('settings'),
   i18n,
@@ -200,7 +200,7 @@ async function start() {
   i18n.age = AGES.includes(store.data.age) ? store.data.age : 'middle';
   await setLang(pickLang(params.get('lang'), store.data.lang));
 
-  // The very first launch: a grown-up picks language, age and subtitles (all preselected).
+  // The very first launch: pick language, age and subtitles (all preselected).
   if (!store.data.setupDone && !fast) {
     screen = 'setup';
     await runSetup({ host: $('setup'), i18n, store, onLang: chooseLang });

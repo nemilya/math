@@ -1,4 +1,4 @@
-// First launch: one short screen for a grown-up — language, the child's age, subtitles.
+// First launch: one short screen — language, the child's age, subtitles.
 // Everything is preselected (browser language, 7–9, no subtitles), so "Start" alone is fine.
 // It never shows again; the same settings live behind the gear.
 
@@ -8,7 +8,7 @@ import { h } from './ui.js';
 const T = {
   en: {
     title: 'Before we start',
-    lead: 'Three quick choices for a grown-up. You can change them any time with the gear in the corner.',
+    lead: 'Three quick choices before we begin. You can change them any time with the gear in the corner.',
     lang: 'Language',
     age: "Child's age",
     ages: {
@@ -22,7 +22,7 @@ const T = {
   },
   ru: {
     title: 'Перед началом',
-    lead: 'Три коротких вопроса для взрослого. Всё можно поменять в любой момент шестерёнкой в углу.',
+    lead: 'Три коротких вопроса перед началом. Всё можно поменять в любой момент шестерёнкой в углу.',
     lang: 'Язык',
     age: 'Возраст ребёнка',
     ages: {

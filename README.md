@@ -39,16 +39,16 @@ make serve                # http://localhost:8000  (or: npm start, or python3 -m
 Open it on a tablet or a computer and tap the sleeping Lumo to wake him up. Best in landscape,
 with sound on. `make help` lists all commands.
 
-## For grown-ups
+## Settings
 
 <img src="docs/img/en/setup.jpg" alt="First launch" width="420" align="right">
 
-* **First launch** — one short screen for a grown-up: language, the child's age, subtitles.
+* **First launch** — one short screen: language, the child's age, subtitles.
   Everything is preselected (browser language, 7–9, no subtitles), so "Start" alone is fine.
   It is shown once; afterwards the same settings live behind the gear.
 * **Language** — the EN / RU switcher in the top bar (as in the `education` project:
   `?lang=` → last choice → browser language → English; the choice goes into the address).
-* **The gear** opens the grown-ups' panel — the only place with text to read:
+* **The gear** opens the settings — the only place with text to read:
   * **child's age** — 4–6, 7–9 or 10–12. Changes Lumo's words: simpler and shorter for little
     ones (and shorter games), real names (diagonal, parallelogram, multiples) and a bit of
     history (Thales, Euclid, where the triangle-area formula comes from) for older children;
@@ -118,5 +118,5 @@ build your own adventures on it. The gear icon is from [Feather Icons](https://f
 * Lumo's voice — neural TTS for every line, English and Russian;
 * three age bands: Lumo talks more simply with little ones and more precisely, with history, with older ones;
 * hints only on silence — each once, can be switched off;
-* explanations, ideas and the child's own questions recorded in their voice — on the device only, with an album for grown-ups;
+* explanations, ideas and the child's own questions recorded in their voice — on the device only, with an album in the settings;
 * `make dist` — a ready folder for any host.

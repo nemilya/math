@@ -26,7 +26,7 @@ The stages below are not "versions" but directions of growth; many can go in par
 
 - [x] **Quality voice**: every line voiced with Gemini TTS via OpenRouter, checked by transcription (`make voice`)
 - [x] **Three age bands** (4–6, 7–9, 10–12): Lumo's words change, the ideas stay
-- [x] **Grown-ups' panel**: age, hints, subtitles, microphone, the discovery album, start over
+- [x] **Settings panel**: age, hints, subtitles, microphone, the discovery album, start over
 - [x] **Calm hints**: each hint once, can be switched off
 - [x] **Hosting folder**: `make dist` → `dist/` + `dist.zip`, works from any subfolder
 - [ ] **Listen to the voice and tune it**: choose between voices, adjust the character brief, re-voice odd lines (`--redo`)

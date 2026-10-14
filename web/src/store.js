@@ -5,7 +5,7 @@ const KEY = 'lumo.v1';
 
 const blank = () => ({
   lang: null,
-  // settings for grown-ups
+  // settings
   age: 'middle', // 'small' 4–6, 'middle' 7–9, 'big' 10–12 — changes Lumo's words
   hints: true, // Lumo offers a hint (once) when the child is quiet for a while
   mic: true, // invite the child to explain out loud
@@ -64,7 +64,7 @@ export const store = {
     data.mine.push(star);
     save();
   },
-  // Forget progress (stars, guesses, own questions) but keep the grown-ups' settings.
+  // Forget progress (stars, guesses, own questions) but keep the settings.
   resetProgress() {
     Object.assign(data, { greeted: false, lit: {}, unlocked: {}, mem: {}, mine: [] });
     save();

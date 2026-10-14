@@ -43,7 +43,7 @@ The keeper of the sky is **Lumo**, a small living light (see [KEEPER.md](KEEPER.
 
 1. **Everything by voice.** The child does not need to read. Everything that must be
    understood, Lumo says. Everything that must be pressed is a picture. Tapping Lumo repeats
-   the last line. Subtitles are only an option for grown-ups and hard-of-hearing children.
+   the last line. Subtitles are only an option: for those who like to read along, and for hard-of-hearing children.
 2. **Question before answer.** First "I wonder how much...?", then a guess, then play, then the idea.
 3. **No "wrong".** There are "interesting guesses", "hmm, can't see it yet", "brave ideas".
    A mistake is a normal part of discovery.

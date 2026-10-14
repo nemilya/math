@@ -1,4 +1,4 @@
-// The grown-ups' panel (the gear button). This is the only place in the portal with
+// The settings panel (the gear button). This is the only place in the portal with
 // words to read: the child never needs it.
 
 import { AGES } from './i18n.js';
@@ -9,7 +9,7 @@ const REPO = 'https://github.com/nemilya/math';
 
 const T = {
   ru: {
-    title: 'Для взрослых',
+    title: 'Настройки',
     close: 'Закрыть',
     age: 'Возраст ребёнка',
     ages: { small: '4–6 лет', middle: '7–9 лет', big: '10–12 лет' },
@@ -39,7 +39,7 @@ const T = {
     repo: 'Исходный код на GitHub',
   },
   en: {
-    title: 'For grown-ups',
+    title: 'Settings',
     close: 'Close',
     age: "Child's age",
     ages: { small: '4–6 years', middle: '7–9 years', big: '10–12 years' },

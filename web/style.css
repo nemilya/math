@@ -293,7 +293,7 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .plus .body { fill: var(--mint); filter: url(#glow); }
 .plus .ring { fill: rgba(123, 224, 176, .12); stroke: var(--mint); stroke-width: 2; stroke-dasharray: 4 6; }
 
-/* ---------- grown-ups' settings ---------- */
+/* ---------- settings ---------- */
 
 #settings, #setup {
   position: fixed;
@@ -345,7 +345,7 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .sheet .link { justify-self: start; color: #9a5a00; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .sheet .reset { display: grid; gap: 8px; justify-items: start; }
 
-/* first launch: three quick choices for a grown-up */
+/* first launch: three quick choices */
 #setup { z-index: 40; background: radial-gradient(ellipse at 50% 120%, #26305e 0%, var(--night-2) 45%, var(--night) 100%); }
 .sheet .lead { color: #5d6077; }
 .sheet .ages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }

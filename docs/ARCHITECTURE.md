@@ -18,7 +18,7 @@ web/
     voice.js            voice: generated files → browser speech → silence + subtitles
     i18n.js             languages, age versions of lines
     setup.js            first launch: language, age, subtitles (shown once)
-    settings.js         the grown-ups' panel (gear): age, hints, subtitles, microphone, album
+    settings.js         settings (gear): age, hints, subtitles, microphone, album
     recorder.js         the child's voice: recording and storage (on this device only)
     store.js            what the child explored + settings (localStorage)
     sfx.js              little sounds synthesised on the fly (WebAudio)
