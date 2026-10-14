@@ -40,6 +40,29 @@ export class Voice {
     this._startWaiters = [];
     this.clips = new Map(); // clip url → Promise<blob: url | null>, clips held in memory (prepare)
     this._loading = new AbortController(); // fetches for the current language
+    this._queue = []; // clips to warm in the background (preload)
+    this._warm = new Set(); // ...and those already warmed
+    this._workers = 0;
+    this._urgent = 0; // fetches someone is waiting for (prepare, a line streaming now)
+    this._calmWaiters = [];
+  }
+
+  // Urgent fetches go first: background preloading starts nothing new while any is running
+  // (also usable from outside — e.g. an adventure's code the child is about to need).
+  urgent(p) {
+    this._urgent++;
+    const done = () => {
+      if (--this._urgent) return;
+      const w = this._calmWaiters;
+      this._calmWaiters = [];
+      w.forEach((r) => r());
+    };
+    p.then(done, done);
+    return p;
+  }
+
+  _calm() {
+    return this._urgent ? new Promise((r) => this._calmWaiters.push(r)) : Promise.resolve();
   }
 
   on(fn) {
@@ -82,6 +105,7 @@ export class Voice {
     // Stop loading the old language's clips: on a slow first visit they'd delay the new ones.
     this._loading.abort();
     this._loading = new AbortController();
+    this._queue = [];
     // Drop the old language's clips right away: until the new manifest arrives Lumo uses the
     // browser voice, never an old-language file (or a wrong folder).
     this.manifest = {};
@@ -139,18 +163,44 @@ export class Voice {
         .catch(() => null);
       p.then((u) => u || this.clips.delete(url)); // a failed or cancelled one may be tried again
       this.clips.set(url, p);
+      this.urgent(p);
     }
     return p;
   }
 
   // Warm the browser cache with every clip of a namespace (for this age), so Lumo answers
-  // without a pause.
-  preload(ns, { age } = {}) {
-    const { signal } = this._loading;
-    const files = this._urls((id) => id.startsWith(`${ns}:`), age).filter((u) => !this.clips.has(u));
-    let i = 0;
-    const next = () => !signal.aborted && i < files.length && fetch(files[i++], { signal }).then(next, next);
-    for (let k = 0; k < 3; k++) next();
+  // without a pause. `order` — the keys in the order they are said (the lines file follows the
+  // script): what comes next is fetched first, not what is first in the alphabet.
+  // One queue, two at a time, behind anything urgent; the newest request goes first (an
+  // adventure just opened needs its clips before the rest of the sky).
+  preload(ns, { age, order = [] } = {}) {
+    const rank = (id) => {
+      const k = id.slice(ns.length + 1).replace(/~[a-z]+/, ''); // 'guess.half', 'hello2.1', 'left.10'
+      const i = order.indexOf(k);
+      return i >= 0 ? i : order.includes(k.replace(/\.\d+$/, '')) ? order.indexOf(k.replace(/\.\d+$/, '')) : order.length;
+    };
+    const ids = Object.keys(this.manifest).filter((id) => id.startsWith(`${ns}:`));
+    ids.sort((a, b) => rank(a) - rank(b)); // stable: variants keep their order
+    const want = new Set(this._urls((id) => id.startsWith(`${ns}:`), age));
+    const files = [...new Set(ids.map((id) => `audio/${this.manifestLang}/${this.manifest[id]}`))].filter(
+      (u) => want.has(u) && !this.clips.has(u) && !this._warm.has(u),
+    );
+    const fresh = new Set(files);
+    this._queue = [...files, ...this._queue.filter((u) => !fresh.has(u))];
+    while (this._workers < 2) {
+      this._workers++;
+      this._work().finally(() => this._workers--);
+    }
+  }
+
+  async _work() {
+    while (this._queue.length) {
+      await this._calm();
+      const u = this._queue.shift();
+      if (!u || this.clips.has(u) || this._warm.has(u)) continue;
+      const ok = await fetch(u, { signal: this._loading.signal }).then((r) => r.ok, () => false);
+      if (ok) this._warm.add(u);
+    }
   }
 
   async _pickVoice(lang) {
@@ -246,6 +296,15 @@ export class Voice {
         // The mouth follows the sound, not the call: still while the file is loading.
         a.onplaying = () => this._setAudible(true);
         a.onwaiting = () => this._setAudible(false);
+        // A line streamed from the network is urgent too, until it starts (or ends).
+        if (!blob) {
+          this.urgent(
+            new Promise((r) => {
+              a.addEventListener('playing', r, { once: true });
+              setTimeout(r, CLIP_WAIT);
+            }),
+          );
+        }
         a.src = blob || url;
         a.playbackRate = 1;
         a.play().catch(() => done(gen !== this.gen));

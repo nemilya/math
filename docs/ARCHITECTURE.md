@@ -128,10 +128,14 @@ make voice                 # or: node tools/voice.mjs [en ru] [--redo "text"] [-
 * Loading order, so that a new visitor never sees Lumo talk in silence: first the words said
   right after waking (the wake line, the sky's greeting, the adventures' names) — into memory;
   then the rest of the sky's lines in the background. A tap on an adventure star fetches its
-  code and its opening lines (`first` in `stars.js`); the rest of its clips follow. Only the
-  clips of the child's age are fetched.
+  code and its opening lines (`first` in `stars.js`); the rest of its clips follow, in the order
+  of its lines file (≈ the order they are said), not alphabetically. While picture buttons are
+  shown, the possible answers (`choose(…, { reply })`) are fetched. Only the clips of the
+  child's age are fetched. Background preloading is one queue, two at a time, and gives way to
+  anything urgent (a line someone waits for, an adventure's code).
 * Lumo's mouth and the subtitles follow the sound itself: while a clip is still loading, he waits
-  quietly.
+  quietly — and if that takes over half a second, a little thought bubble appears ("hmm…") and
+  fades away as he starts speaking. Quick loads show nothing, so it never flickers.
 
 ## The child's voice (microphone)
 

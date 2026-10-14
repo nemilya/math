@@ -23,7 +23,11 @@ createServer(async (req, res) => {
   if (path.endsWith('/')) path += 'index.html';
   try {
     const body = await readFile(join(ROOT, path));
-    res.writeHead(200, { 'content-type': TYPES[extname(path)] || 'application/octet-stream' });
+    const headers = { 'content-type': TYPES[extname(path)] || 'application/octet-stream' };
+    // Clip names are hashes of their content: cacheable forever, as a real host would (so the
+    // voice preloading behaves here as it does online). Code is always fetched fresh.
+    if (extname(path) === '.mp3') headers['cache-control'] = 'public, max-age=31536000, immutable';
+    res.writeHead(200, headers);
     res.end(body);
   } catch {
     res.writeHead(404).end('not found');

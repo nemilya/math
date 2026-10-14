@@ -50,9 +50,26 @@ const refreshCC = () => {
   subtitle.hidden = !(subtitlesOn() && voice.audible && voice.current);
 };
 
-// Mouth and subtitles follow the sound itself: if a clip is still loading, Lumo waits quietly.
+// Lumo "thinks" (a thought bubble) while something he needs is still on its way — a line, an
+// adventure — but only after a noticeable moment: a quick load shows nothing, so no flicker.
+const PONDER_AFTER = 500;
+const waits = new Map(); // what he waits for → its timer, or true once the bubble is shown
+function waitFor(what, on) {
+  if (on === waits.has(what)) return;
+  if (on) {
+    waits.set(what, setTimeout(() => (waits.set(what, true), keeper.ponder(true)), PONDER_AFTER));
+  } else {
+    clearTimeout(waits.get(what));
+    waits.delete(what);
+    if (![...waits.values()].includes(true)) keeper.ponder(false);
+  }
+}
+
+// Mouth and subtitles follow the sound itself: if a clip is still loading, Lumo waits quietly —
+// and, if it takes a while, thinks.
 voice.on((speaking, text, audible) => {
   keeper.setTalking(audible);
+  waitFor('voice', speaking && !audible);
   subtitle.textContent = text;
   refreshCC();
 });
@@ -150,8 +167,8 @@ const prepareFirstWords = () =>
   );
 
 const preloadSky = () => {
-  voice.preload('common', { age: i18n.age });
-  voice.preload('sky', { age: i18n.age });
+  voice.preload('common', { age: i18n.age, order: i18n.keys('common') });
+  voice.preload('sky', { age: i18n.age, order: i18n.keys('sky') });
 };
 
 function drawBackground() {
@@ -199,8 +216,12 @@ async function goAdventure(id) {
   try {
     // Usually already started by a tap on its star: the code, the lines, the opening words.
     const ready = s.prepareAdventure(star);
-    ready.words.then(() => s.signal.aborted || voice.preload(id, { age: i18n.age })); // the rest after them
-    const [mod] = await ready.code;
+    // The rest of its clips after the opening words, in the order they are said.
+    Promise.all([ready.words, ready.code])
+      .then(() => s.signal.aborted || voice.preload(id, { age: i18n.age, order: i18n.keys(id) }))
+      .catch(() => {});
+    waitFor('adventure', true);
+    const [mod] = await ready.code.finally(() => waitFor('adventure', false));
     s.check();
     await mod.default(s);
     store.light(id);

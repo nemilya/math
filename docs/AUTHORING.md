@@ -115,7 +115,7 @@ all languages.
 | `handle(parent)` | a glowing point that can be dragged (`moveTo`, `show`) |
 | `drag(el, { start, move, end })` | dragging; returns `{ active, stop() }` |
 | `tap(targets)`, `tapPoint(area)` | wait for a tap (on an element / at a point) |
-| `choose([{ id, icon \| svg }])` | picture buttons at the bottom; returns `id` |
+| `choose([{ id, icon \| svg }], { reply })` | picture buttons at the bottom; returns `id`. `reply: (id) => \`guess.${id}\`` — the line Lumo answers with: all of them are fetched while the child decides |
 | `until(pred, { hints })` | wait until a condition holds |
 | `wait(ms)` | pause |
 | `celebrate(x, y)`, `sparkle(x, y)`, `mood('thinking')` | Lumo's emotions |

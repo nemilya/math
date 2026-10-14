@@ -171,6 +171,16 @@ html, body {
 @keyframes zzz { 0% { opacity: 0; transform: translate(0, 0); } 30% { opacity: .9; } 100% { opacity: 0; transform: translate(14px, -26px); } }
 
 #keeper.thinking .spark { animation-duration: .9s; }
+/* "Hmm..." while a line or an adventure is still loading: fades in, dots take turns, fades out
+   as soon as the voice starts (app.js shows it only after a noticeable wait — no flicker). */
+.lumo .thought { opacity: 0; transition: opacity .3s ease; pointer-events: none; }
+.lumo .thought > * { fill: #fffbe8; fill-opacity: .92; }
+.lumo .thought .d { fill: #2b2140; fill-opacity: 1; transform-box: fill-box; transform-origin: center; }
+#keeper.pondering .thought { opacity: 1; transition-duration: .25s; }
+#keeper.pondering .thought .d { animation: think-dot 1.2s ease-in-out infinite; }
+#keeper.pondering .thought .d:nth-child(5) { animation-delay: .2s; }
+#keeper.pondering .thought .d:nth-child(6) { animation-delay: .4s; }
+@keyframes think-dot { 0%, 100% { opacity: .3; transform: scale(.8); } 40% { opacity: 1; transform: scale(1.15); } }
 #keeper.listening .spark { fill: #ff8a9a; animation-duration: .8s; }
 #keeper.listening .aura { animation-duration: 1.4s; }
 #keeper.glow .aura { animation: burst 1.3s ease-out; }
