@@ -37,6 +37,7 @@ export class Voice {
     this.listeners = new Set();
     this._interrupt = null;
     this._idleWaiters = [];
+    this._startWaiters = [];
     this.clips = new Map(); // clip url → Promise<blob: url | null>, clips held in memory (prepare)
     this._loading = new AbortController(); // fetches for the current language
   }
@@ -53,6 +54,19 @@ export class Voice {
     if (this.audible === on) return;
     this.audible = on;
     this._emit();
+    if (on) this._flushStart();
+  }
+
+  // Resolves when the current line is actually heard (or ends unheard) — a clip may still be loading.
+  started() {
+    if (this.audible || !this.speaking) return Promise.resolve();
+    return new Promise((r) => this._startWaiters.push(r));
+  }
+
+  _flushStart() {
+    const w = this._startWaiters;
+    this._startWaiters = [];
+    w.forEach((r) => r());
   }
 
   // Call inside the first tap: lets later lines play on browsers that demand a gesture,
@@ -181,6 +195,7 @@ export class Voice {
     this.current = '';
     this.lastEndAt = performance.now();
     this._emit();
+    this._flushStart();
     const w = this._idleWaiters;
     this._idleWaiters = [];
     w.forEach((r) => r());

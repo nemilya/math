@@ -1,6 +1,7 @@
 // Scene: the small vocabulary every adventure is written in.
 //
 //   await s.say('hello')                      — Lumo speaks a line (in the child's language)
+//   await s.sayWhile('look', async () => {…}) — …and shows what he says, in step with the voice
 //   const id = await s.choose([...])          — picture buttons, no words
 //   s.drag(handle, { move })                  — let the child move something
 //   await s.until(() => cond, { hints })      — wait for a discovery; Lumo gently nudges if idle
@@ -83,6 +84,16 @@ export class Scene {
     if (polite) await this.guard((res) => this.voice.idle().then(res));
     await this.voice.speak(line.text, { id: line.id });
     this.check();
+  }
+
+  // Say a line and show what it says at the same time. `show` starts with the sound itself (not
+  // while its clip is still loading), so its s.wait()s count from the first word; resolves when
+  // both the line and the picture are done.
+  async sayWhile(k, show) {
+    const said = this.say(k);
+    said.catch(() => {}); // a closed scene is reported by the guard below / Promise.all
+    await this.guard((res) => this.voice.started().then(res));
+    await Promise.all([said, show()]);
   }
 
   // Get an adventure ready while the child is still choosing: its code and lines, and its opening

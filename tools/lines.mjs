@@ -20,7 +20,7 @@ const literals = (src) =>
 
 function usedKeys(src, ns) {
   const keys = new Set();
-  for (const m of src.matchAll(/\b(?:say|talk)\(([^)]*)\)/g)) literals(m[1]).forEach((k) => keys.add(k));
+  for (const m of src.matchAll(/\b(?:say|sayWhile|talk)\(([^)]*)\)/g)) literals(m[1]).forEach((k) => keys.add(k));
   for (const m of src.matchAll(/hints:\s*\[([^\]]*)\]/g)) literals(m[1]).forEach((k) => keys.add(k));
   for (const m of src.matchAll(/prompt:\s*'([^']+)'/g)) keys.add(m[1]);
   return [...keys].map((k) => (k.includes(':') ? k : `${ns}:${k}`));

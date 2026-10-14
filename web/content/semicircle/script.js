@@ -36,11 +36,17 @@ export default async function semicircle(s) {
   const insetBox = s.el('polygon', { class: 'shape cool' }, inset);
   const insetA = s.el('line', { class: 'diag-a' }, inset);
   const insetB = s.el('line', { class: 'diag-b' }, inset);
+  // The opening only: the two sides drawn from the point on the arc to the ends, and the point.
+  const sideA = s.el('line', { class: 'shape warm' }, g);
+  const sideC = s.el('line', { class: 'shape warm' }, g);
+  const dot = s.el('circle', { r: 9, class: 'dot' }, g);
   const handle = s.handle(g);
   const spin = s.handle(g);
 
   const show = (e, on = true) => (e.style.display = on ? '' : 'none');
   for (const e of [arcBot, quad, copy, wedge, paper, diagA, diagB, diagCopy, center, inset, handle, spin]) show(e, false);
+  // ...and the opening picture appears as Lumo describes it.
+  for (const e of [arcTop, diam, tri, sideA, sideC, dot]) show(e, false);
 
   const A = () => ({ x: st.O.x - st.R, y: st.O.y });
   const C = () => ({ x: st.O.x + st.R, y: st.O.y });
@@ -100,17 +106,41 @@ export default async function semicircle(s) {
   };
   render();
 
-  // 1. A semicircle and a triangle standing in it.
-  await s.say('look');
-  await s.draw(arcTop, 1200);
-  await s.draw(diam, 600);
-  await s.say('tri');
-  tri.style.fillOpacity = 0;
-  await s.draw(tri, 1000);
-  await s.animate(tri, 'fillOpacity', 0, 1, 400);
-  await s.say('corner');
-  show(wedge);
-  await s.fadeIn(wedge, 400);
+  // 1. A semicircle and a triangle standing in it — drawn as Lumo says it.
+  // (The waits follow the voiced lines: "Here is a semicircle. [And below it, its diameter.]")
+  await s.sayWhile('look', async () => {
+    show(arcTop);
+    await s.draw(arcTop, 1200);
+    if (s.age === 'big') await s.wait(1000);
+    show(diam);
+    await s.draw(diam, 600);
+  });
+  // "Let's put a point on the arc | and join it to the ends. | Now we have a triangle."
+  await s.sayWhile('tri', async () => {
+    const [a, b, c] = [A(), Bt(), C()];
+    set(dot, { cx: b.x, cy: b.y });
+    await s.wait(700);
+    show(dot);
+    sfx.pop();
+    await s.fadeIn(dot, 300);
+    await s.wait(1100);
+    set(sideA, { x1: b.x, y1: b.y, x2: a.x, y2: a.y });
+    set(sideC, { x1: b.x, y1: b.y, x2: c.x, y2: c.y });
+    show(sideA);
+    show(sideC);
+    await Promise.all([s.draw(sideA, 1300), s.draw(sideC, 1300)]);
+    await s.wait(700);
+    tri.style.fillOpacity = 0;
+    show(tri);
+    show(sideA, false);
+    show(sideC, false);
+    await s.animate(tri, 'fillOpacity', 0, 1, 500);
+  });
+  await s.sayWhile('corner', async () => {
+    await s.wait(600);
+    show(wedge);
+    await s.fadeIn(wedge, 400);
+  });
 
   // 2. Move the tip along the arc. The corner... doesn't change?
   let travel = 0;
@@ -124,6 +154,7 @@ export default async function semicircle(s) {
       render();
     },
   });
+  show(dot, false); // the glowing handle takes its place
   show(handle);
   await s.say('drag');
   await s.until(() => travel > 2.2, { hints: ['drag.hint'] });
