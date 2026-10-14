@@ -89,11 +89,18 @@ are deleted. Every new clip is transcribed back and compared with the text. Need
 
 ```bash
 make dist                 # → dist/ and dist.zip
+make deploy               # build and upload dist/ to the server (rsync over ssh)
+make deploy-dry           # show what would be uploaded and deleted — changes nothing
 ```
 
 Upload the contents of `dist/` to **any subfolder** of a static host (e.g. `example.org/lumo/`):
 all paths are relative, no server code or database. `.js` must be served as JavaScript and
 `.mp3` as audio/mpeg (the default for nginx and Apache).
+
+`make deploy` takes the target from `local.mk` (copy `local.mk.example`), e.g.
+`DEPLOY = ssh://nemilya-me/home/ilya/site/projects/math` (or `host:/path`). It uploads only what
+changed and **removes files there that are no longer in `dist/`**, so point it at a folder used
+only by this portal.
 
 For development: `?lang=ru` (language), `?fast` (no voice, fast, subtitles — for tests),
 `?reset` (forget progress). Check the lines in every language and age: `make check`.

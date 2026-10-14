@@ -1,0 +1,8 @@
+# Copy to local.mk (not in git) and fill in.
+
+# Voice (make voice): OpenRouter key; optional proxy (socks5h://…, http://…)
+OPENROUTER_API_KEY = sk-or-...
+# OPENROUTER_PROXY = socks5h://127.0.0.1:1080
+
+# Hosting (make deploy): where dist/ goes. An ssh host alias from ~/.ssh/config works.
+DEPLOY = ssh://nemilya-me/home/ilya/site/projects/math
