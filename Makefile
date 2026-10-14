@@ -7,9 +7,9 @@ LANGS ?=
 
 # Where `make deploy` uploads dist/ — set it in local.mk (see local.mk.example):
 #   DEPLOY = ssh://nemilya-me/home/ilya/site/projects/math    (or the rsync form: nemilya-me:/home/ilya/site/projects/math)
-# The ssh:// form is turned into rsync's host:/path.
+# The ssh:// form is turned into rsync's host:/path. (No '#' inside $(shell …): macOS make 3.81 reads it as a comment.)
 DEPLOY ?=
-DEPLOY_TARGET = $(shell printf '%s' '$(DEPLOY)' | sed -E 's#^s?sh://([^/]+)(/.*)$$#\1:\2#')
+DEPLOY_TARGET = $(shell printf '%s' '$(DEPLOY)' | sed -E 's|^s?sh://([^/]+)(/.*)$$|\1:\2|')
 RSYNC = rsync -rlptvz --delete --exclude '.DS_Store'
 
 .PHONY: help serve check voice dist deploy deploy-dry
