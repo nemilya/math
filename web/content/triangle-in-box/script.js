@@ -126,7 +126,7 @@ export default async function triangleInBox(s) {
       { id: 'half', svg: level(0.5) },
       { id: 'more', svg: level(0.75) },
     ],
-    { hints: ['choose.hint'] },
+    { hints: ['choose.hint'], reply: (id) => `guess.${id}` },
   );
   s.remember('guess', guess);
   await s.say(`guess.${guess}`);
@@ -200,11 +200,21 @@ export default async function triangleInBox(s) {
     s.animate(partL, 'opacity', 0.25, 1, 300),
     s.animate(tri, 'fillOpacity', 0.15, 0, 400),
   ]);
-  await s.say('inout');
-  await s.fadeOut(parts, 500);
-  parts.style.display = 'none';
-  parts.style.opacity = '';
-  await s.say('flip');
+  // "Yellow is inside the triangle. | Blue is outside." The two parts' frames and tints step back,
+  // so the colours are plain — and each lights up as Lumo names it (waits follow the voiced lines).
+  const light = (els, on) => els.forEach((e) => e.classList.toggle('lit', on));
+  await s.sayWhile('inout', async () => {
+    await s.fadeOut(parts, 400);
+    parts.style.display = 'none';
+    parts.style.opacity = '';
+    light([inL, inR], true);
+    await s.wait(2100);
+    light([inL, inR], false);
+    await s.wait(200);
+    light([outL, outR], true);
+  });
+  await s.say('flip'); // "Let's turn the blue pieces around" — still lit
+  light([outL, outR], false);
   // The blue piece itself is picked up and turned half a turn around the centre of its part:
   // its old place stays empty (a dashed outline), and it lands exactly on the yellow piece.
   const cy = (T + B) / 2;

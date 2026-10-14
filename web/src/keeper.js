@@ -36,6 +36,14 @@ const SVG = `
     <circle cx="140" cy="158" r="9" fill="#ff8a7a" opacity=".45"/>
     <path class="smile" d="M87 162 Q100 176 113 162" stroke="#5a2b3a" stroke-width="4.5" fill="none" stroke-linecap="round"/>
     <ellipse class="mouth" cx="100" cy="167" rx="9" ry="5" fill="#5a2b3a"/>
+    <g class="thought" aria-hidden="true">
+      <circle cx="150" cy="60" r="3.5"/>
+      <circle cx="161" cy="45" r="5.5"/>
+      <ellipse cx="183" cy="22" rx="25" ry="16"/>
+      <circle class="d" cx="172" cy="22" r="3.4"/>
+      <circle class="d" cx="183" cy="22" r="3.4"/>
+      <circle class="d" cx="194" cy="22" r="3.4"/>
+    </g>
   </g>
   <g class="zzz" fill="#cfd6ff" font-family="system-ui" font-weight="700">
     <text x="150" y="80" font-size="22">z</text>
@@ -48,6 +56,7 @@ export function createKeeper(host) {
   host.innerHTML = SVG;
   const pupils = [...host.querySelectorAll('.pupil')];
   let lookOverride = null;
+  let pondering = false;
 
   const look = (dx, dy) => {
     for (const p of pupils) p.setAttribute('transform', `translate(${dx.toFixed(1)} ${dy.toFixed(1)})`);
@@ -55,7 +64,7 @@ export function createKeeper(host) {
 
   // Lumo's eyes follow the child's finger / mouse — a small thing that makes him feel alive.
   window.addEventListener('pointermove', (e) => {
-    if (lookOverride) return;
+    if (lookOverride || pondering) return;
     const r = host.getBoundingClientRect();
     const cx = r.left + r.width / 2;
     const cy = r.top + r.height * 0.55;
@@ -78,6 +87,12 @@ export function createKeeper(host) {
     setTalking: (on) => host.classList.toggle('talking', on),
     sleep: (on) => host.classList.toggle('asleep', on),
     dock: (on) => host.classList.toggle('center', !on),
+    // "Hmm..." — a thought bubble and eyes up, while something he needs is still on its way.
+    ponder(on) {
+      pondering = on;
+      host.classList.toggle('pondering', on);
+      if (!lookOverride) look(on ? 2.5 : 0, on ? -5 : 0);
+    },
     glow: () => flash('glow', 1300),
     wiggle: () => flash('wiggle', 520),
     mood(m) {

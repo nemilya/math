@@ -96,11 +96,17 @@ export class Scene {
     await Promise.all([said, show()]);
   }
 
+  // Fetch lines into memory ahead of time (all their variants, for this child's age).
+  prepare(keys) {
+    return this.voice.prepare(keys.map((k) => this.key(k)), { age: this.age });
+  }
+
   // Get an adventure ready while the child is still choosing: its code and lines, and its opening
   // words (`first` in stars.js) into memory, for this child's age. Calling it again costs nothing.
   prepareAdventure(star) {
     const code = Promise.all([star.load(), this.i18n.load(star.id)]);
     code.catch(() => {}); // reported where it is awaited (the adventure itself)
+    this.voice.urgent(code); // background preloading waits for it
     const words = this.voice.prepare((star.first || []).map((k) => `${star.id}:${k}`), { age: this.age });
     return { code, words };
   }
@@ -358,7 +364,10 @@ export class Scene {
     this.dock.innerHTML = '';
   }
 
-  async choose(opts, { hints } = {}) {
+  // `reply(id)` — the line Lumo answers a choice with: all of them are fetched while the child
+  // decides, so the answer comes at once.
+  async choose(opts, { hints, reply } = {}) {
+    if (reply) this.prepare(opts.map((o) => reply(o.id)));
     const map = this.buttons(opts);
     try {
       return await this.tap(map, { hints });

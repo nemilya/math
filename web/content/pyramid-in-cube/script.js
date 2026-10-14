@@ -145,7 +145,7 @@ export default async function pyramidInCube(s) {
       { id: 'half', svg: level(0.5) },
       { id: 'more', svg: level(0.75) },
     ],
-    { hints: ['choose.hint'] },
+    { hints: ['choose.hint'], reply: (id) => `guess.${id}` },
   );
   s.remember('guess', guess);
   await s.say(`guess.${guess}`);

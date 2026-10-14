@@ -4,7 +4,7 @@
 //                  ?fast      no voice, everything 8× faster, subtitles on (for testing)
 //                  ?reset     forget progress
 
-import { I18n, AGES, LANGS, pickLang } from './i18n.js';
+import { I18n, AGES, pickLang } from './i18n.js';
 import { Voice } from './voice.js';
 import { Scene } from './scene.js';
 import { createKeeper } from './keeper.js';
@@ -50,9 +50,42 @@ const refreshCC = () => {
   subtitle.hidden = !(subtitlesOn() && voice.audible && voice.current);
 };
 
-// Mouth and subtitles follow the sound itself: if a clip is still loading, Lumo waits quietly.
+// Lumo "thinks" (a thought bubble) while something he needs is still on its way — a line, an
+// adventure. Only on a slow connection, where such pauses are real and long; and never as a
+// flicker: it appears after a clear pause and, once shown, stays a moment before fading (a
+// bubble that blinks looks stranger than the pause itself).
+const PONDER_AFTER = 700;
+const PONDER_MIN = 800;
+const waits = new Map(); // what he waits for → its timer, or true once it showed the bubble
+let shownAt = 0;
+let hideTimer = 0;
+function waitFor(what, on) {
+  if (on === waits.has(what)) return;
+  if (on) {
+    const t = setTimeout(() => {
+      if (!voice.slow()) return;
+      waits.set(what, true);
+      clearTimeout(hideTimer);
+      if (!shownAt) {
+        shownAt = performance.now();
+        keeper.ponder(true);
+      }
+    }, PONDER_AFTER);
+    waits.set(what, t);
+  } else {
+    clearTimeout(waits.get(what));
+    waits.delete(what);
+    if (!shownAt || [...waits.values()].includes(true)) return;
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => ((shownAt = 0), keeper.ponder(false)), Math.max(0, shownAt + PONDER_MIN - performance.now()));
+  }
+}
+
+// Mouth and subtitles follow the sound itself: if a clip is still loading, Lumo waits quietly —
+// and, if it takes a while, thinks.
 voice.on((speaking, text, audible) => {
   keeper.setTalking(audible);
+  waitFor('voice', speaking && !audible);
   subtitle.textContent = text;
   refreshCC();
 });
@@ -63,12 +96,16 @@ $('btn-home').addEventListener('click', () => {
   goSky();
 });
 
-// Settings: age, hints, subtitles, microphone, the album of recordings.
+// Settings: language, age, hints, subtitles, microphone, the album of recordings.
 const settings = createSettings({
   host: $('settings'),
   i18n,
   store,
-  async onChange(what) {
+  async onChange(what, value) {
+    if (what === 'lang') {
+      await chooseLang(value);
+      if (screen !== 'start') goSky(); // Lumo starts over in the new language
+    }
     if (what === 'age') {
       i18n.age = store.data.age;
       preloadSky();
@@ -91,22 +128,9 @@ keeper.el.addEventListener('click', () => {
   else voice.repeat();
 });
 
-// The language switcher (EN / RU in the top bar), as in nemilya/education: the choice is
-// remembered and put into the address, so a shared link opens in the same language.
-function drawLangs() {
-  const box = $('langs');
-  box.replaceChildren(
-    ...LANGS.map((l) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.lang = l.id;
-      b.title = l.name;
-      b.textContent = l.id.toUpperCase();
-      b.setAttribute('aria-pressed', String(l.id === i18n.lang));
-      return b;
-    }),
-  );
-}
+// The language is chosen on the first-launch screen and in the settings (not shown all the
+// time — it is set once). As in nemilya/education, the choice is remembered and put into the
+// address, so a shared link opens in the same language.
 async function chooseLang(l) {
   store.set('lang', l);
   const u = new URL(location.href);
@@ -114,18 +138,10 @@ async function chooseLang(l) {
   history.replaceState(null, '', u);
   await setLang(l);
 }
-$('langs').addEventListener('click', async (e) => {
-  const l = e.target.closest('button')?.dataset.lang;
-  if (!l || l === i18n.lang) return;
-  sfx.tap();
-  await chooseLang(l);
-  if (screen !== 'start') goSky();
-});
 
 function setLang(lang) {
   document.documentElement.lang = lang;
   i18n.lang = lang;
-  drawLangs();
   langReady = (async () => {
     await Promise.all([i18n.load('common'), i18n.load('sky'), voice.setLang(lang)]);
     needSubtitles = !voice.hasVoice();
@@ -150,8 +166,8 @@ const prepareFirstWords = () =>
   );
 
 const preloadSky = () => {
-  voice.preload('common', { age: i18n.age });
-  voice.preload('sky', { age: i18n.age });
+  voice.preload('common', { age: i18n.age, order: i18n.keys('common') });
+  voice.preload('sky', { age: i18n.age, order: i18n.keys('sky') });
 };
 
 function drawBackground() {
@@ -199,8 +215,12 @@ async function goAdventure(id) {
   try {
     // Usually already started by a tap on its star: the code, the lines, the opening words.
     const ready = s.prepareAdventure(star);
-    ready.words.then(() => s.signal.aborted || voice.preload(id, { age: i18n.age })); // the rest after them
-    const [mod] = await ready.code;
+    // The rest of its clips after the opening words, in the order they are said.
+    Promise.all([ready.words, ready.code])
+      .then(() => s.signal.aborted || voice.preload(id, { age: i18n.age, order: i18n.keys(id) }))
+      .catch(() => {});
+    waitFor('adventure', true);
+    const [mod] = await ready.code.finally(() => waitFor('adventure', false));
     s.check();
     await mod.default(s);
     store.light(id);

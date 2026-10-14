@@ -51,6 +51,11 @@ export class I18n {
     );
   }
 
+  // A namespace's keys in the order of its lines file (≈ the order the script says them).
+  keys(ns) {
+    return Object.keys(this.tables[this.lang]?.[ns] || {});
+  }
+
   line(full) {
     const i = full.indexOf(':');
     const ns = full.slice(0, i);

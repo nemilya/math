@@ -95,10 +95,7 @@ html, body {
   z-index: 6;
 }
 
-#topbar .langs { display: flex; padding: 3px; gap: 2px; border-radius: 24px; border: 2px solid rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .08); backdrop-filter: blur(6px); }
-#topbar .langs button { min-width: 40px; height: 38px; padding: 0 8px; border: 0; border-radius: 20px; background: transparent; color: var(--chalk); font: 700 14px/1 system-ui, sans-serif; letter-spacing: .06em; cursor: pointer; opacity: .65; }
-#topbar .langs button[aria-pressed="true"] { background: rgba(255, 196, 87, .3); opacity: 1; }
-#topbar .langs button:focus-visible, .btn:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+.btn:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
 
 #btn-help {
   position: fixed;
@@ -171,6 +168,16 @@ html, body {
 @keyframes zzz { 0% { opacity: 0; transform: translate(0, 0); } 30% { opacity: .9; } 100% { opacity: 0; transform: translate(14px, -26px); } }
 
 #keeper.thinking .spark { animation-duration: .9s; }
+/* "Hmm..." while a line or an adventure is still loading: fades in, dots take turns, fades out
+   as soon as the voice starts (app.js shows it only after a noticeable wait — no flicker). */
+.lumo .thought { opacity: 0; transition: opacity .3s ease; pointer-events: none; }
+.lumo .thought > * { fill: #fffbe8; fill-opacity: .92; }
+.lumo .thought .d { fill: #2b2140; fill-opacity: 1; transform-box: fill-box; transform-origin: center; }
+#keeper.pondering .thought { opacity: 1; transition-duration: .25s; }
+#keeper.pondering .thought .d { animation: think-dot 1.2s ease-in-out infinite; }
+#keeper.pondering .thought .d:nth-child(5) { animation-delay: .2s; }
+#keeper.pondering .thought .d:nth-child(6) { animation-delay: .4s; }
+@keyframes think-dot { 0%, 100% { opacity: .3; transform: scale(.8); } 40% { opacity: 1; transform: scale(1.15); } }
 #keeper.listening .spark { fill: #ff8a9a; animation-duration: .8s; }
 #keeper.listening .aura { animation-duration: 1.4s; }
 #keeper.glow .aura { animation: burst 1.3s ease-out; }
@@ -189,7 +196,10 @@ line.line, .cut, .diag-a, .diag-b { filter: url(#glow-line); } /* see #glow-line
 .shape.cool { fill: var(--cool-fill); stroke: var(--cool); }
 .shape.mint { fill: rgba(123, 224, 176, .3); stroke: var(--mint); }
 .shape.ghost { fill: rgba(140, 188, 255, .12); stroke: var(--cool); stroke-dasharray: 8 10; }
-.piece { stroke: none; }
+.piece { stroke: none; transition: fill .35s ease, stroke-width .35s ease; }
+/* lit up as Lumo names the colour ("yellow is inside…") */
+.piece.warm.lit { fill: rgba(255, 196, 87, .85); stroke: var(--warm); stroke-width: 3; stroke-linejoin: round; }
+.piece.cool.lit { fill: rgba(110, 170, 255, .85); stroke: var(--cool); stroke-width: 3; stroke-linejoin: round; }
 .piece.warm { fill: rgba(255, 196, 87, .5); }
 .piece.cool { fill: rgba(110, 170, 255, .55); }
 .piece.moving { fill: rgba(120, 178, 255, .8); stroke: #dbe9ff; stroke-width: 3; stroke-linejoin: round; filter: url(#glow); }

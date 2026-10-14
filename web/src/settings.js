@@ -1,7 +1,7 @@
 // The settings panel (the gear button). This is the only place in the portal with
 // words to read: the child never needs it.
 
-import { AGES } from './i18n.js';
+import { AGES, LANGS } from './i18n.js';
 import { voices } from './recorder.js';
 import { h } from './ui.js';
 
@@ -11,27 +11,28 @@ const T = {
   ru: {
     title: 'Настройки',
     close: 'Закрыть',
-    age: 'Возраст ребёнка',
+    lang: 'Язык',
+    age: 'Возраст исследователя',
     ages: { small: '4–6 лет', middle: '7–9 лет', big: '10–12 лет' },
     ageNote:
       'Лумо подбирает слова под возраст: малышам — проще и короче, старшим — настоящие названия (диагональ, прямой угол, параллельные) и немного истории.',
     hints: 'Подсказки',
-    hintsNote: 'Если ребёнок долго ничего не делает, Лумо мягко подсказывает. Каждая подсказка звучит один раз.',
+    hintsNote: 'Если исследователь долго ничего не делает, Лумо мягко подсказывает. Каждая подсказка звучит один раз.',
     cc: 'Субтитры',
     ccNote: 'Показывать текст того, что говорит Лумо.',
     mic: 'Рассказать своими словами',
     micNote:
-      'В конце приключения Лумо предлагает объяснить идею вслух. Ребёнок слышит свою запись, а вы можете послушать её в альбоме.',
+      'В конце приключения Лумо предлагает объяснить идею вслух. Исследователь слышит свою запись, а вы можете послушать её в альбоме.',
     album: 'Альбом открытий',
     albumNote:
-      'Объяснения, идеи и вопросы ребёнка. Хранятся только в этом браузере: никуда не отправляются и ничем не анализируются. Их слушаете вы — и это лучший повод поговорить.',
-    empty: 'Пока пусто. Записи появятся, когда ребёнок что-нибудь расскажет Лумо.',
+      'Объяснения, идеи и вопросы исследователя. Хранятся только в этом браузере: никуда не отправляются и ничем не анализируются. Их слушаете вы — и это лучший повод поговорить.',
+    empty: 'Пока пусто. Записи появятся, когда исследователь что-нибудь расскажет Лумо.',
     mine: 'Свой вопрос',
     play: 'Слушать',
     stop: 'Стоп',
     del: 'Удалить',
     reset: 'Начать сначала',
-    resetNote: 'Звёзды погаснут, свои вопросы ребёнка исчезнут с неба. Записи в альбоме останутся.',
+    resetNote: 'Звёзды погаснут, свои вопросы исследователя исчезнут с неба. Записи в альбоме останутся.',
     resetYes: 'Да, начать сначала',
     about: 'О проекте',
     aboutNote:
@@ -41,27 +42,28 @@ const T = {
   en: {
     title: 'Settings',
     close: 'Close',
-    age: "Child's age",
+    lang: 'Language',
+    age: "Explorer's age",
     ages: { small: '4–6 years', middle: '7–9 years', big: '10–12 years' },
     ageNote:
-      'Lumo picks words to suit the age: simpler and shorter for little ones, real names (diagonal, right angle, parallel) and a bit of history for older children.',
+      'Lumo picks words to suit the age: simpler and shorter for little ones, real names (diagonal, right angle, parallel) and a bit of history for older explorers.',
     hints: 'Hints',
-    hintsNote: 'If the child does nothing for a while, Lumo gives a gentle hint. Each hint is said only once.',
+    hintsNote: 'If the explorer does nothing for a while, Lumo gives a gentle hint. Each hint is said only once.',
     cc: 'Subtitles',
     ccNote: 'Show the text of what Lumo says.',
     mic: 'Explain in their own words',
     micNote:
-      'At the end of an adventure Lumo invites the child to explain the idea out loud. The child hears the recording back, and you can listen to it in the album.',
+      'At the end of an adventure Lumo invites the explorer to explain the idea out loud. The explorer hears the recording back, and you can listen to it in the album.',
     album: 'Discovery album',
     albumNote:
-      "The child's explanations, ideas and questions. They stay in this browser only: never uploaded, never analysed. They are for you to hear — and a great reason to talk.",
-    empty: 'Empty for now. Recordings appear when the child tells Lumo something.',
+      "The explorer's explanations, ideas and questions. They stay in this browser only: never uploaded, never analysed. They are for you to hear — and a great reason to talk.",
+    empty: 'Empty for now. Recordings appear when the explorer tells Lumo something.',
     mine: 'Own question',
     play: 'Listen',
     stop: 'Stop',
     del: 'Delete',
     reset: 'Start over',
-    resetNote: "Stars go dark and the child's own questions leave the sky. Album recordings stay.",
+    resetNote: "Stars go dark and the explorer's own questions leave the sky. Album recordings stay.",
     resetYes: 'Yes, start over',
     about: 'About',
     aboutNote:
@@ -169,6 +171,14 @@ export function createSettings({ host, i18n, store, onChange }) {
       'div',
       { class: 'panel', role: 'dialog', 'aria-modal': 'true', 'aria-label': L.title },
       h('header', {}, h('h2', {}, L.title), h('button', { class: 'close', 'aria-label': L.close, onclick: close }, '×')),
+      // Each language in its own name, so it can be found whatever language is on now.
+      h('section', {}, h('h3', {}, L.lang), segmented(LANGS.map((l) => [l.id, l.name]), i18n.lang, async (l) => {
+        if (l === i18n.lang) return;
+        const switched = onChange('lang', l); // switches i18n.lang at once; the voice loads meanwhile
+        render(); // the panel itself in the new language, right away
+        await switched;
+        render(); // ...and the album's star names, now that the new lines are here
+      })),
       h('section', {}, h('h3', {}, L.age), segmented(AGES.map((a) => [a, L.ages[a]]), store.data.age, (a) => {
         store.set('age', a);
         onChange('age');

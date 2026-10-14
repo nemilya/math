@@ -115,7 +115,7 @@ export default async function myAdventure(s) {
 | `handle(parent)` | светящаяся точка, которую можно тянуть (`moveTo`, `show`) |
 | `drag(el, { start, move, end })` | перетаскивание; возвращает `{ active, stop() }` |
 | `tap(targets)`, `tapPoint(area)` | ждать нажатия (на элемент / в точку) |
-| `choose([{ id, icon \| svg }])` | кнопки-картинки внизу, возвращает `id` |
+| `choose([{ id, icon \| svg }], { reply })` | кнопки-картинки внизу, возвращает `id`. `reply: (id) => \`guess.${id}\`` — реплика, которой Лумо отвечает на выбор: все варианты загружаются, пока ребёнок думает |
 | `until(pred, { hints })` | ждать, пока условие станет истинным |
 | `wait(ms)` | пауза |
 | `celebrate(x, y)`, `sparkle(x, y)`, `mood('thinking')` | эмоции Лумо |
