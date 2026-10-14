@@ -9,6 +9,9 @@
 //               `from` makes it appear after that adventure (Lumo "hangs it in the sky").
 //   far       — questions from the edge of the sky: adventures still to be built.
 //
+// An adventure's `first` — the keys of its opening lines: they are fetched into memory as soon as
+// the child taps the star, so the adventure starts speaking at once (make check verifies them).
+//
 // To add a star: add it here and give it spoken lines in content/sky/lines.<lang>.js.
 
 export const STARS = [
@@ -16,6 +19,7 @@ export const STARS = [
     id: 'triangle-in-box',
     kind: 'adventure',
     at: [270, 300],
+    first: ['look', 'triangle', 'question'],
     load: () => import('./triangle-in-box/script.js'),
   },
   { id: 'slanted-triangle', kind: 'question', at: [150, 180], from: 'triangle-in-box' },
@@ -24,6 +28,7 @@ export const STARS = [
     kind: 'adventure',
     at: [345, 150],
     from: 'triangle-in-box',
+    first: ['look', 'spin', 'spun'],
     load: () => import('./pyramid-in-cube/script.js'),
   },
   { id: 'cone-in-cylinder', kind: 'question', at: [475, 85], from: 'pyramid-in-cube' },
@@ -32,6 +37,7 @@ export const STARS = [
     id: 'semicircle',
     kind: 'adventure',
     at: [530, 320],
+    first: ['look', 'tri', 'corner'],
     load: () => import('./semicircle/script.js'),
   },
   { id: 'corners-in-space', kind: 'question', at: [585, 170], from: 'semicircle' },
@@ -40,6 +46,7 @@ export const STARS = [
     id: 'last-pebble',
     kind: 'adventure',
     at: [790, 290],
+    first: ['hello', 'rules.turns', 'rules.take.3'],
     load: () => import('./last-pebble/script.js'),
   },
   { id: 'pebble-misere', kind: 'question', at: [880, 150], from: 'last-pebble' },

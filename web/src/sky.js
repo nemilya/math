@@ -118,6 +118,8 @@ export async function runSky(s, { stars, justLit }) {
       select(hit.id);
       sfx.pop();
       const st = nodes.get(hit.id).star;
+      // It starts loading now, while Lumo says its name and the child finds "play".
+      if (st.kind === 'adventure') s.prepareAdventure(st);
       if (st.kind === 'mine') {
         s.clearDock();
         s.hush();

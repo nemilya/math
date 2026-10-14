@@ -69,7 +69,10 @@ const settings = createSettings({
   i18n,
   store,
   async onChange(what) {
-    if (what === 'age') i18n.age = store.data.age;
+    if (what === 'age') {
+      i18n.age = store.data.age;
+      preloadSky();
+    }
     if (what === 'cc') refreshCC();
     if (what === 'reset' || (what === 'mic' && screen === 'sky')) goSky();
   },
@@ -129,20 +132,27 @@ function setLang(lang) {
     refreshCC();
     // The first words come first — a new visitor's tap on the sleeping Lumo must be answered
     // at once; only then the rest of the sky's and the common lines.
-    prepareFirstWords().then(() => {
-      if (i18n.lang !== lang) return;
-      voice.preload('common');
-      voice.preload('sky');
-    });
+    prepareFirstWords().then(() => i18n.lang === lang && preloadSky());
   })();
   return langReady;
 }
 
-// What Lumo says right after waking: "I dozed off... hi!" and the sky's greeting.
+// What Lumo says right after waking: "I dozed off... hi!", the sky's greeting, and the names of
+// the adventures — what a child tapping the first stars hears.
 const prepareFirstWords = () =>
-  voice.prepare(['common:wake', ...(store.data.greeted ? ['sky:back'] : ['sky:hello1', 'sky:hello2', 'sky:hello3'])], {
-    age: i18n.age,
-  });
+  voice.prepare(
+    [
+      'common:wake',
+      ...(store.data.greeted ? ['sky:back'] : ['sky:hello1', 'sky:hello2', 'sky:hello3']),
+      ...STARS.filter((st) => st.kind === 'adventure').map((st) => `sky:${st.id}.name`),
+    ],
+    { age: i18n.age },
+  );
+
+const preloadSky = () => {
+  voice.preload('common', { age: i18n.age });
+  voice.preload('sky', { age: i18n.age });
+};
 
 function drawBackground() {
   const bg = $('bg');
@@ -187,8 +197,10 @@ async function goAdventure(id) {
   const wasLit = store.isLit(id);
   const s = newScene(id);
   try {
-    voice.preload(id);
-    const [mod] = await Promise.all([star.load(), i18n.load(id)]);
+    // Usually already started by a tap on its star: the code, the lines, the opening words.
+    const ready = s.prepareAdventure(star);
+    ready.words.then(() => s.signal.aborted || voice.preload(id, { age: i18n.age })); // the rest after them
+    const [mod] = await ready.code;
     s.check();
     await mod.default(s);
     store.light(id);

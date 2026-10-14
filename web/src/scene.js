@@ -85,6 +85,15 @@ export class Scene {
     this.check();
   }
 
+  // Get an adventure ready while the child is still choosing: its code and lines, and its opening
+  // words (`first` in stars.js) into memory, for this child's age. Calling it again costs nothing.
+  prepareAdventure(star) {
+    const code = Promise.all([star.load(), this.i18n.load(star.id)]);
+    code.catch(() => {}); // reported where it is awaited (the adventure itself)
+    const words = this.voice.prepare((star.first || []).map((k) => `${star.id}:${k}`), { age: this.age });
+    return { code, words };
+  }
+
   // Fire-and-forget speech that a later talk() or tap can interrupt.
   talk(keys) {
     const gen = ++this._talkGen;

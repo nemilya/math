@@ -10,6 +10,7 @@
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { WEB, CONTENT, AGES, loadAll, expand, isAged } from './lib/lines.mjs';
 
 const BASE = 'en'; // the project's main language: every other language must match it
@@ -61,6 +62,12 @@ async function check() {
       const [n, k] = [full.slice(0, full.indexOf(':')), full.slice(full.indexOf(':') + 1)];
       if (!all[n]?.[BASE] || !(k in all[n][BASE])) report(`${relative(WEB, file)} uses unknown line ${full}`);
     }
+  }
+
+  // The opening lines an adventure fetches ahead (`first` in stars.js) must exist.
+  const { STARS } = await import(pathToFileURL(join(CONTENT, 'stars.js')).href);
+  for (const st of STARS) {
+    for (const k of st.first || []) if (!all[st.id]?.[BASE] || !(k in all[st.id][BASE])) report(`stars.js: ${st.id} first: unknown line ${st.id}:${k}`);
   }
 
   const langs = [...new Set(Object.values(all).flatMap((l) => Object.keys(l)))];

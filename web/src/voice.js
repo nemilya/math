@@ -89,18 +89,26 @@ export class Voice {
     return !!this.voice || Object.keys(this.manifest).length > 0;
   }
 
-  // Fetch the very first lines into memory (all variants of each key; with `age`, only that
-  // age's version), so they play the instant they are needed. On a first visit the network is
-  // still busy, and a line that waits for its file would start in silence.
+  // Clip urls of the lines matching `keep(id)` — with `age`, only what a child of that age hears:
+  // their own version of a line, or `middle` where the line has none for them (as i18n picks).
+  _urls(keep, age) {
+    const ids = Object.keys(this.manifest);
+    const aged = (id) => id.match(/^([^~]+)~([a-z]+)/); // [, line, its age] for an age version
+    const hasOwn = new Set(ids.map(aged).filter((m) => m?.[2] === age).map((m) => m[1]));
+    const forAge = (id) => {
+      const m = aged(id);
+      return !age || !m || m[2] === age || (m[2] === 'middle' && !hasOwn.has(m[1]));
+    };
+    return ids.filter((id) => keep(id) && forAge(id)).map((id) => `audio/${this.manifestLang}/${this.manifest[id]}`);
+  }
+
+  // Fetch the very first lines into memory (all variants of each key), so they play the instant
+  // they are needed. On a first visit the network is still busy, and a line that waits for its
+  // file would start in silence.
   // In the order of `keys`, two at a time: on a slow line the first words aren't held back by
   // the later ones. Resolves when they are all here (or failed).
   prepare(keys, { age } = {}) {
-    const ofKey = (k, id) => id === k || id.startsWith(`${k}.`) || id.startsWith(`${k}~`);
-    const ofAge = (id) => !age || !id.includes('~') || id.includes(`~${age}`);
-    const ids = Object.keys(this.manifest);
-    const urls = keys.flatMap((k) =>
-      ids.filter((id) => ofKey(k, id) && ofAge(id)).map((id) => `audio/${this.manifestLang}/${this.manifest[id]}`),
-    );
+    const urls = keys.flatMap((k) => this._urls((id) => id === k || id.startsWith(`${k}.`) || id.startsWith(`${k}~`), age));
     let i = 0;
     const lane = async () => {
       while (i < urls.length) await this._clip(urls[i++]);
@@ -121,13 +129,11 @@ export class Voice {
     return p;
   }
 
-  // Warm the browser cache with every clip of a namespace, so Lumo answers without a pause.
-  preload(ns) {
+  // Warm the browser cache with every clip of a namespace (for this age), so Lumo answers
+  // without a pause.
+  preload(ns, { age } = {}) {
     const { signal } = this._loading;
-    const files = Object.entries(this.manifest)
-      .filter(([id]) => id.startsWith(`${ns}:`))
-      .map(([, f]) => `audio/${this.manifestLang}/${f}`)
-      .filter((u) => !this.clips.has(u));
+    const files = this._urls((id) => id.startsWith(`${ns}:`), age).filter((u) => !this.clips.has(u));
     let i = 0;
     const next = () => !signal.aborted && i < files.length && fetch(files[i++], { signal }).then(next, next);
     for (let k = 0; k < 3; k++) next();
