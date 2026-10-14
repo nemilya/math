@@ -9,8 +9,8 @@ export default {
   'record.saved': ["Done! Listen to what you said.", "Got it! Let's listen."],
   'record.after': {
     small: "Lovely! I'll keep your words by this star. Tell it to your mum or dad too!",
-    middle: 'Thank you! Your words now live by this star. Grown-ups can listen to them in the album — or even better, tell them yourself.',
-    big: 'Thank you! Your explanation is saved by this star. Grown-ups can listen to it in the album — or even better, explain it to them in person.',
+    middle: 'Thank you! Your words now live by this star. Your family can listen to them in the album — or even better, tell them yourself.',
+    big: 'Thank you! Your explanation is saved by this star. Your family can listen to it in the album — or even better, explain it to them in person.',
   },
   'record.nomic':
     "I don't have a microphone here. Then say it out loud — to someone nearby. Explaining is the most important part of mathematics.",
