@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b1026">
+  <title>Lumo — Sky of Questions</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='12' fill='%23ffd36b'/%3E%3Ccircle cx='22' cy='5' r='3' fill='%23fffbe8'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg id="stage" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Straight lines (a vertical cut, a horizontal diameter) have a zero-width bounding box, and a
+           filter sized from the bounding box makes them vanish. Lines get a glow sized in stage units. -->
+      <filter id="glow-line" filterUnits="userSpaceOnUse" x="-50" y="-50" width="1100" height="700">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="blur"><feGaussianBlur stdDeviation="3"/></filter>
+      <radialGradient id="pebble" cx="35%" cy="30%" r="75%">
+        <stop offset="0" stop-color="#efe8da"/>
+        <stop offset=".6" stop-color="#ada392"/>
+        <stop offset="1" stop-color="#6d6557"/>
+      </radialGradient>
+      <radialGradient id="halo">
+        <stop offset="0" stop-color="#ffe9a8" stop-opacity=".55"/>
+        <stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="nebula">
+        <stop offset="0" stop-color="#8a6bd8" stop-opacity=".28"/>
+        <stop offset="1" stop-color="#8a6bd8" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <g id="bg"></g>
+  </svg>
+
+  <div id="subtitle" hidden></div>
+  <!-- "?" — an adventure can show its rules or a reminder (scene.help) -->
+  <button id="btn-help" class="btn small help" hidden aria-label="Rules">?</button>
+  <div id="dock"></div>
+
+  <div id="topbar">
+    <button id="btn-home" class="btn small" hidden aria-label="Home"></button>
+    <div id="langs" class="langs" role="group" aria-label="Language"></div>
+    <button id="btn-settings" class="btn small" aria-label="Settings for grown-ups"></button>
+  </div>
+  <div id="settings" hidden></div>
+  <div id="setup" class="sheet" hidden></div>
+
+  <div id="keeper" class="center asleep" role="button" aria-label="Lumo"></div>
+
+  <!-- Portrait phones: the sky is wide, so we ask (with a picture) to turn the phone. Tap to dismiss. -->
+  <div id="rotate" hidden>
+    <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <g class="phone"><rect x="38" y="20" width="44" height="80" rx="8"/><path d="M54 90 H66"/></g>
+      <path d="M96 40 A44 44 0 0 1 100 70" class="arrow"/><path d="M92 64 L100 72 L106 62" class="arrow"/>
+    </svg>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

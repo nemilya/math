@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+# OpenRouter key and proxy (OPENROUTER_API_KEY = …) — local only
+local.mk
+# hosting folder (make dist)
+dist/
+dist.zip

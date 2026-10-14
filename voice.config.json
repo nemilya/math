@@ -1,0 +1,36 @@
+{
+  "_": "Lumo's voice (make voice). The key lives only in the OPENROUTER_API_KEY environment variable or in local.mk (not in git). Proxy: OPENROUTER_PROXY. Gemini TTS voices: male — Puck, Charon, Orus, Fenrir, Iapetus; female — Kore, Aoede, Leda, Zephyr. Changing the voice or the manner re-synthesises everything (the cache is keyed by a hash of text, voice and manner).",
+  "endpoint": "https://openrouter.ai/api/v1",
+  "model": "google/gemini-3.8-flash-lite-tts",
+  "speed": 1.0,
+  "loudness": -16,
+  "langs": {
+    "en": {
+      "voice": "Puck",
+      "instructions": "You are Lumo, a small warm glowing creature who keeps questions. You are talking to a seven-year-old sitting next to you. Warm, gentle and lively voice, smiling, genuinely curious, a little wonder in the questions. Unhurried, short pauses between sentences. No baby talk, no theatrics, not a narrator. Read the text exactly as written, in natural American English."
+    },
+    "ru": {
+      "voice": "Puck",
+      "instructions": "Ты — Лумо, маленький тёплый огонёк, хранитель вопросов. Говоришь с ребёнком лет семи, который сидит рядом. Голос тёплый, мягкий и живой, с улыбкой и искренним любопытством, лёгкое удивление в вопросах. Не спеша, с короткими паузами между фразами. Без сюсюканья, без театральности и без интонации диктора. Читай текст ровно как написан, по-русски."
+    }
+  },
+  "verify": {
+    "enabled": true,
+    "model": "google/gemini-3.5-transcribe",
+    "retries": 3,
+    "minScore": 0.85,
+    "skip": [
+      "ха",
+      "хм",
+      "мм",
+      "м",
+      "ой",
+      "ну",
+      "ha",
+      "hmm",
+      "mmm",
+      "oh",
+      "uh"
+    ]
+  }
+}
