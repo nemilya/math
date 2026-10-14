@@ -38,6 +38,7 @@ const voice = new Voice({ speed, silent: fast });
 let ctl = null;
 let screen = 'start';
 let needSubtitles = false;
+let langReady = Promise.resolve();
 
 // ---------- chrome ----------
 
@@ -46,11 +47,12 @@ $('btn-settings').innerHTML = icons.gear;
 
 const subtitlesOn = () => store.data.cc || needSubtitles || fast;
 const refreshCC = () => {
-  subtitle.hidden = !(subtitlesOn() && voice.speaking && voice.current);
+  subtitle.hidden = !(subtitlesOn() && voice.audible && voice.current);
 };
 
-voice.on((speaking, text) => {
-  keeper.setTalking(speaking);
+// Mouth and subtitles follow the sound itself: if a clip is still loading, Lumo waits quietly.
+voice.on((speaking, text, audible) => {
+  keeper.setTalking(audible);
   subtitle.textContent = text;
   refreshCC();
 });
@@ -67,7 +69,10 @@ const settings = createSettings({
   i18n,
   store,
   async onChange(what) {
-    if (what === 'age') i18n.age = store.data.age;
+    if (what === 'age') {
+      i18n.age = store.data.age;
+      preloadSky();
+    }
     if (what === 'cc') refreshCC();
     if (what === 'reset' || (what === 'mic' && screen === 'sky')) goSky();
   },
@@ -117,16 +122,37 @@ $('langs').addEventListener('click', async (e) => {
   if (screen !== 'start') goSky();
 });
 
-async function setLang(lang) {
+function setLang(lang) {
   document.documentElement.lang = lang;
   i18n.lang = lang;
   drawLangs();
-  await Promise.all([i18n.load('common'), i18n.load('sky'), voice.setLang(lang)]);
-  voice.preload('common');
-  voice.preload('sky');
-  needSubtitles = !voice.hasVoice();
-  refreshCC();
+  langReady = (async () => {
+    await Promise.all([i18n.load('common'), i18n.load('sky'), voice.setLang(lang)]);
+    needSubtitles = !voice.hasVoice();
+    refreshCC();
+    // The first words come first — a new visitor's tap on the sleeping Lumo must be answered
+    // at once; only then the rest of the sky's and the common lines.
+    prepareFirstWords().then(() => i18n.lang === lang && preloadSky());
+  })();
+  return langReady;
 }
+
+// What Lumo says right after waking: "I dozed off... hi!", the sky's greeting, and the names of
+// the adventures — what a child tapping the first stars hears.
+const prepareFirstWords = () =>
+  voice.prepare(
+    [
+      'common:wake',
+      ...(store.data.greeted ? ['sky:back'] : ['sky:hello1', 'sky:hello2', 'sky:hello3']),
+      ...STARS.filter((st) => st.kind === 'adventure').map((st) => `sky:${st.id}.name`),
+    ],
+    { age: i18n.age },
+  );
+
+const preloadSky = () => {
+  voice.preload('common', { age: i18n.age });
+  voice.preload('sky', { age: i18n.age });
+};
 
 function drawBackground() {
   const bg = $('bg');
@@ -171,8 +197,10 @@ async function goAdventure(id) {
   const wasLit = store.isLit(id);
   const s = newScene(id);
   try {
-    voice.preload(id);
-    const [mod] = await Promise.all([star.load(), i18n.load(id)]);
+    // Usually already started by a tap on its star: the code, the lines, the opening words.
+    const ready = s.prepareAdventure(star);
+    ready.words.then(() => s.signal.aborted || voice.preload(id, { age: i18n.age })); // the rest after them
+    const [mod] = await ready.code;
     s.check();
     await mod.default(s);
     store.light(id);
@@ -206,16 +234,21 @@ async function start() {
     await runSetup({ host: $('setup'), i18n, store, onLang: chooseLang });
     i18n.age = store.data.age;
     refreshCC();
+    // The language and the age may have just been chosen there (nothing to fetch if preselected).
+    langReady.then(prepareFirstWords);
     screen = 'start';
   }
   const wake = async () => {
     if (screen !== 'start') return;
     screen = 'waking';
     sfx.unlock();
+    voice.unlock();
     sfx.wake();
     keeper.sleep(false);
     keeper.glow();
-    // The very first speech must happen inside a user gesture on some browsers.
+    // The very first speech must happen inside a user gesture on some browsers — voice.unlock()
+    // above lets it start a moment later, once the chosen language's voice is here.
+    await langReady;
     const line = i18n.line('common:wake');
     const hello = voice.speak(line.text, { id: line.id });
     keeper.dock(true);

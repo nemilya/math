@@ -47,9 +47,13 @@ web/content/my-adventure/
 A star in `web/content/stars.js`:
 
 ```js
-{ id: 'my-adventure', kind: 'adventure', at: [x, y], load: () => import('./my-adventure/script.js') },
+{ id: 'my-adventure', kind: 'adventure', at: [x, y], first: ['hello', 'look'], load: () => import('./my-adventure/script.js') },
 { id: 'my-open-question', kind: 'question', at: [x, y], from: 'my-adventure' },
 ```
+
+`first` — the keys of the adventure's opening lines (2–3, in the order they are said): they are
+fetched as soon as the child taps the star, so after "play" Lumo speaks at once. `make check`
+verifies they exist.
 
 A name and a question in `web/content/sky/lines.<lang>.js`:
 
@@ -66,9 +70,13 @@ Then `make check` and `make voice`.
 export default async function myAdventure(s) {
   const g = s.layer();
   const shape = s.el('circle', { cx: 500, cy: 300, r: 120, class: 'line' }, g);
+  shape.style.display = 'none';     // not on screen before Lumo talks about it
 
-  await s.say('hello');
-  await s.draw(shape, 1000);
+  // "Here is a circle." — the circle is drawn while he says it, not after
+  await s.sayWhile('hello', async () => {
+    shape.style.display = '';
+    await s.draw(shape, 1000);
+  });
 
   const handle = s.handle(g);
   handle.moveTo(620, 300);
@@ -87,11 +95,19 @@ export default async function myAdventure(s) {
 }
 ```
 
+**Show what Lumo says, as he says it.** A picture already on screen while Lumo announces it
+("let's put a point…" over a finished triangle), or drawn only after he has finished, feels
+off. Keep the parts hidden until their line, and draw them inside `sayWhile`; for a long line,
+place the parts with `s.wait()` at the words they belong to (the pauses in the clip:
+`ffmpeg -i clip.mp3 -af silencedetect=n=-35dB:d=0.12 -f null -`) — a middle ground for
+all languages.
+
 ### Scene vocabulary
 
 | Method | What it does |
 |---|---|
 | `say(key)` | Lumo says a line; waits until it ends. An empty line (no version for this age) is skipped |
+| `sayWhile(key, async () => …)` | Lumo says a line **and shows what it says**: the function starts with the sound itself (not while the clip is loading), so `s.wait(ms)` inside counts from the first word. Waits for both |
 | `talk([keys])` | speaks "in the background"; the next `talk` or a tap interrupts |
 | `layer()`, `el(tag, attrs, parent)` | SVG layers and elements (coordinates 1000×600) |
 | `draw(el, ms)` | draw a line "by hand" |

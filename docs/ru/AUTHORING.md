@@ -47,9 +47,13 @@ web/content/my-adventure/
 И звезда в `web/content/stars.js`:
 
 ```js
-{ id: 'my-adventure', kind: 'adventure', at: [x, y], load: () => import('./my-adventure/script.js') },
+{ id: 'my-adventure', kind: 'adventure', at: [x, y], first: ['hello', 'look'], load: () => import('./my-adventure/script.js') },
 { id: 'my-open-question', kind: 'question', at: [x, y], from: 'my-adventure' },
 ```
+
+`first` — ключи первых реплик приключения (2–3, в том порядке, как они звучат): они загружаются,
+как только ребёнок нажал на звезду, — и после «плей» Лумо заговорит сразу. `make check`
+проверяет, что такие реплики есть.
 
 И название + вопрос в `web/content/sky/lines.<lang>.js`:
 
@@ -66,9 +70,13 @@ import { pts, clamp, set } from '../../src/svg.js';
 export default async function myAdventure(s) {
   const g = s.layer();
   const shape = s.el('circle', { cx: 500, cy: 300, r: 120, class: 'line' }, g);
+  shape.style.display = 'none';     // не на экране, пока Лумо о нём не заговорил
 
-  await s.say('hello');
-  await s.draw(shape, 1000);
+  // «Вот круг.» — круг рисуется, пока он это говорит, а не после
+  await s.sayWhile('hello', async () => {
+    shape.style.display = '';
+    await s.draw(shape, 1000);
+  });
 
   const handle = s.handle(g);
   handle.moveTo(620, 300);
@@ -87,11 +95,19 @@ export default async function myAdventure(s) {
 }
 ```
 
+**Показывай то, что говорит Лумо, — пока он это говорит.** Картинка, которая уже на экране,
+когда Лумо её объявляет («поставим точку…» поверх готового треугольника), или рисуется только
+после его слов, — выглядит странно. Прячь части до их реплики и рисуй внутри `sayWhile`; в
+длинной реплике расставь части через `s.wait()` по словам, к которым они относятся (паузы в
+клипе: `ffmpeg -i clip.mp3 -af silencedetect=n=-35dB:d=0.12 -f null -`), — середина между
+языками.
+
 ### Словарь сцены
 
 | Метод | Что делает |
 |---|---|
 | `say(key)` | Лумо говорит реплику; ждёт окончания |
+| `sayWhile(key, async () => …)` | Лумо говорит реплику **и показывает то, о чём говорит**: функция стартует вместе с самим звуком (а не пока реплика грузится), так что `s.wait(ms)` внутри отсчитывается от первого слова. Ждёт и то, и другое |
 | `talk([keys])` | говорит «в фоне»; следующая `talk` или тап прерывает |
 | `layer()`, `el(tag, attrs, parent)` | SVG-слои и элементы (координаты 1000×600) |
 | `draw(el, ms)` | нарисовать линию «от руки» |

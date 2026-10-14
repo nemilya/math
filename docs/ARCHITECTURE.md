@@ -58,6 +58,7 @@ export default async function (s) {
   const box = s.el('rect', { x: 200, y: 110, width: 600, height: 360, class: 'line' });
   await s.say('look');                       // Lumo speaks (in the child's language and age)
   await s.draw(box, 1100);                   // the line is drawn with light
+  await s.sayWhile('triangle', () => s.draw(tri, 1200));  // ...or both at once, in step with the voice
   const guess = await s.choose([...]);       // picture buttons
   const d = s.drag(handle, { move: (p) => { ... } });   // the child moves something
   await s.until(() => travel > 500, { hints: ['drag.hint1', 'drag.hint2'] });
@@ -124,7 +125,13 @@ make voice                 # or: node tools/voice.mjs [en ru] [--redo "text"] [-
 * Every new clip is transcribed back (`/audio/transcriptions`) and compared with the text;
   lost words → synthesised again (up to 3 attempts).
 * ffmpeg trims silence, normalises loudness and encodes mono MP3 (~40–60 KB per line).
-* The adventure's clips are preloaded when it starts, so Lumo answers without a pause.
+* Loading order, so that a new visitor never sees Lumo talk in silence: first the words said
+  right after waking (the wake line, the sky's greeting, the adventures' names) — into memory;
+  then the rest of the sky's lines in the background. A tap on an adventure star fetches its
+  code and its opening lines (`first` in `stars.js`); the rest of its clips follow. Only the
+  clips of the child's age are fetched.
+* Lumo's mouth and the subtitles follow the sound itself: while a clip is still loading, he waits
+  quietly.
 
 ## The child's voice (microphone)
 

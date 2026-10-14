@@ -8,6 +8,14 @@ import { LANGS } from './i18n.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// The shortest silent WAV: played inside the first tap, it unlocks <audio> for later playback
+// on browsers (iOS Safari) that only let a gesture start sound.
+const SILENCE = 'data:audio/wav;base64,UklGRiUAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQEAAACA';
+
+// How long a line waits for its clip still being fetched into memory before streaming it instead
+// (only for a fetch that seems stuck: a second request would compete with the first).
+const CLIP_WAIT = 8000;
+
 export class Voice {
   constructor({ speed = 1, silent = false } = {}) {
     this.silent = silent;
@@ -19,7 +27,8 @@ export class Voice {
     this.manifestLang = null;
     this.audio = new Audio();
     this.gen = 0;
-    this.speaking = false;
+    this.speaking = false; // a line is being said (from speak() until it ends)
+    this.audible = false; // ...and its sound is actually playing now: the mouth moves only then
     this.current = '';
     this.last = null;
     this.lastEndAt = 0;
@@ -28,6 +37,9 @@ export class Voice {
     this.listeners = new Set();
     this._interrupt = null;
     this._idleWaiters = [];
+    this._startWaiters = [];
+    this.clips = new Map(); // clip url → Promise<blob: url | null>, clips held in memory (prepare)
+    this._loading = new AbortController(); // fetches for the current language
   }
 
   on(fn) {
@@ -35,11 +47,41 @@ export class Voice {
   }
 
   _emit() {
-    for (const fn of this.listeners) fn(this.speaking, this.current);
+    for (const fn of this.listeners) fn(this.speaking, this.current, this.audible);
+  }
+
+  _setAudible(on) {
+    if (this.audible === on) return;
+    this.audible = on;
+    this._emit();
+    if (on) this._flushStart();
+  }
+
+  // Resolves when the current line is actually heard (or ends unheard) — a clip may still be loading.
+  started() {
+    if (this.audible || !this.speaking) return Promise.resolve();
+    return new Promise((r) => this._startWaiters.push(r));
+  }
+
+  _flushStart() {
+    const w = this._startWaiters;
+    this._startWaiters = [];
+    w.forEach((r) => r());
+  }
+
+  // Call inside the first tap: lets later lines play on browsers that demand a gesture,
+  // even when the line itself starts a moment later (its clip still loading).
+  unlock() {
+    if (this.silent || this.speaking) return;
+    this.audio.src = SILENCE;
+    this.audio.play().catch(() => {});
   }
 
   async setLang(lang) {
     this.lang = lang;
+    // Stop loading the old language's clips: on a slow first visit they'd delay the new ones.
+    this._loading.abort();
+    this._loading = new AbortController();
     // Drop the old language's clips right away: until the new manifest arrives Lumo uses the
     // browser voice, never an old-language file (or a wrong folder).
     this.manifest = {};
@@ -61,13 +103,53 @@ export class Voice {
     return !!this.voice || Object.keys(this.manifest).length > 0;
   }
 
-  // Warm the browser cache with every clip of a namespace, so Lumo answers without a pause.
-  preload(ns) {
-    const files = Object.entries(this.manifest)
-      .filter(([id]) => id.startsWith(`${ns}:`))
-      .map(([, f]) => `audio/${this.manifestLang}/${f}`);
+  // Clip urls of the lines matching `keep(id)` — with `age`, only what a child of that age hears:
+  // their own version of a line, or `middle` where the line has none for them (as i18n picks).
+  _urls(keep, age) {
+    const ids = Object.keys(this.manifest);
+    const aged = (id) => id.match(/^([^~]+)~([a-z]+)/); // [, line, its age] for an age version
+    const hasOwn = new Set(ids.map(aged).filter((m) => m?.[2] === age).map((m) => m[1]));
+    const forAge = (id) => {
+      const m = aged(id);
+      return !age || !m || m[2] === age || (m[2] === 'middle' && !hasOwn.has(m[1]));
+    };
+    return ids.filter((id) => keep(id) && forAge(id)).map((id) => `audio/${this.manifestLang}/${this.manifest[id]}`);
+  }
+
+  // Fetch the very first lines into memory (all variants of each key), so they play the instant
+  // they are needed. On a first visit the network is still busy, and a line that waits for its
+  // file would start in silence.
+  // In the order of `keys`, two at a time: on a slow line the first words aren't held back by
+  // the later ones. Resolves when they are all here (or failed).
+  prepare(keys, { age } = {}) {
+    const urls = keys.flatMap((k) => this._urls((id) => id === k || id.startsWith(`${k}.`) || id.startsWith(`${k}~`), age));
     let i = 0;
-    const next = () => i < files.length && fetch(files[i++]).then(next, next);
+    const lane = async () => {
+      while (i < urls.length) await this._clip(urls[i++]);
+    };
+    return Promise.all([lane(), lane()]);
+  }
+
+  _clip(url) {
+    let p = this.clips.get(url);
+    if (!p) {
+      p = fetch(url, { signal: this._loading.signal })
+        .then((r) => (r.ok ? r.blob() : null))
+        .then((b) => b && URL.createObjectURL(b))
+        .catch(() => null);
+      p.then((u) => u || this.clips.delete(url)); // a failed or cancelled one may be tried again
+      this.clips.set(url, p);
+    }
+    return p;
+  }
+
+  // Warm the browser cache with every clip of a namespace (for this age), so Lumo answers
+  // without a pause.
+  preload(ns, { age } = {}) {
+    const { signal } = this._loading;
+    const files = this._urls((id) => id.startsWith(`${ns}:`), age).filter((u) => !this.clips.has(u));
+    let i = 0;
+    const next = () => !signal.aborted && i < files.length && fetch(files[i++], { signal }).then(next, next);
     for (let k = 0; k < 3; k++) next();
   }
 
@@ -109,9 +191,11 @@ export class Voice {
 
   _finish() {
     this.speaking = false;
+    this.audible = false;
     this.current = '';
     this.lastEndAt = performance.now();
     this._emit();
+    this._flushStart();
     const w = this._idleWaiters;
     this._idleWaiters = [];
     w.forEach((r) => r());
@@ -145,16 +229,27 @@ export class Voice {
   _file(file, gen) {
     return new Promise((resolve) => {
       const a = this.audio;
+      const url = `audio/${this.manifestLang}/${file}`;
+      let over = false;
       const done = (ok) => {
-        a.onended = a.onerror = null;
+        if (over) return;
+        over = true;
+        a.onended = a.onerror = a.onplaying = a.onwaiting = null;
         resolve(ok);
       };
       this._interrupt = () => done(true);
-      a.onended = () => done(true);
-      a.onerror = () => done(false);
-      a.src = `audio/${this.manifestLang}/${file}`;
-      a.playbackRate = 1;
-      a.play().catch(() => done(gen !== this.gen));
+      // A clip being fetched into memory: wait for it (a second request would only compete with it).
+      Promise.race([this.clips.get(url), sleep(CLIP_WAIT)]).then((blob) => {
+        if (over) return;
+        a.onended = () => done(true);
+        a.onerror = () => done(false);
+        // The mouth follows the sound, not the call: still while the file is loading.
+        a.onplaying = () => this._setAudible(true);
+        a.onwaiting = () => this._setAudible(false);
+        a.src = blob || url;
+        a.playbackRate = 1;
+        a.play().catch(() => done(gen !== this.gen));
+      });
     });
   }
 
@@ -179,11 +274,13 @@ export class Voice {
         this._interrupt = end;
         this._utterance = u; // keep a reference, or Chrome may garbage-collect it mid-speech
         this.synth.speak(u);
+        this._setAudible(true);
       });
     }
   }
 
   _silent(text, gen) {
+    this._setAudible(true); // subtitles only: the mouth moves while the words are on screen
     return new Promise((resolve) => {
       const t = setTimeout(resolve, (700 + text.length * 60) / this.speed);
       this._interrupt = () => (clearTimeout(t), resolve());

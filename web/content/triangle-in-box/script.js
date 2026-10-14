@@ -49,6 +49,8 @@ export default async function triangleInBox(s) {
   parts.style.display = 'none';
   cut.style.display = 'none';
   handle.show(false);
+  box.style.display = 'none'; // the box and the triangle appear as Lumo names them
+  tri.style.display = 'none';
 
   const render = () => {
     const x0 = Math.min(L, tip.x);
@@ -103,13 +105,19 @@ export default async function triangleInBox(s) {
 
   render();
 
-  // 1. A box, a triangle, a question.
-  await s.say('look');
-  await s.draw(box, 1100);
-  await s.say('triangle');
-  tri.style.fillOpacity = 0;
-  await s.draw(tri, 1200);
-  await s.animate(tri, 'fillOpacity', 0, 1, 500);
+  // 1. A box, a triangle, a question. ("Look. | Here is a box." / "And inside the box | lives a triangle.")
+  await s.sayWhile('look', async () => {
+    await s.wait(500);
+    box.style.display = '';
+    await s.draw(box, 1100);
+  });
+  await s.sayWhile('triangle', async () => {
+    await s.wait(900);
+    tri.style.fillOpacity = 0;
+    tri.style.display = '';
+    await s.draw(tri, 1200);
+    await s.animate(tri, 'fillOpacity', 0, 1, 500);
+  });
 
   await s.say('question');
   const guess = await s.choose(
