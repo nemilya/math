@@ -58,6 +58,7 @@ export default async function (s) {
   const box = s.el('rect', { x: 200, y: 110, width: 600, height: 360, class: 'line' });
   await s.say('look');                       // Lumo speaks (in the child's language and age)
   await s.draw(box, 1100);                   // the line is drawn with light
+  await s.sayWhile('triangle', () => s.draw(tri, 1200));  // ...or both at once, in step with the voice
   const guess = await s.choose([...]);       // picture buttons
   const d = s.drag(handle, { move: (p) => { ... } });   // the child moves something
   await s.until(() => travel > 500, { hints: ['drag.hint1', 'drag.hint2'] });

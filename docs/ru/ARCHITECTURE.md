@@ -57,6 +57,7 @@ export default async function (s) {
   const box = s.el('rect', { x: 200, y: 110, width: 600, height: 360, class: 'line' });
   await s.say('look');                       // Лумо говорит (на языке и под возраст ребёнка)
   await s.draw(box, 1100);                   // линия рисуется светом
+  await s.sayWhile('triangle', () => s.draw(tri, 1200));  // …или вместе, в такт голосу
   const guess = await s.choose([...]);       // кнопки-картинки
   const d = s.drag(handle, { move: (p) => { ... } });   // ребёнок двигает
   await s.until(() => travel > 500, { hints: ['drag.hint1', 'drag.hint2'] });
