@@ -16,6 +16,10 @@ const SILENCE = 'data:audio/wav;base64,UklGRiUAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfA
 // (only for a fetch that seems stuck: a second request would compete with the first).
 const CLIP_WAIT = 8000;
 
+// Below this (kbit/s, as measured on the clips) a pause before a line is likely and real —
+// Lumo may show that he is thinking. Above it, a pause is rare and short: better none at all.
+const SLOW_KBPS = 1500;
+
 export class Voice {
   constructor({ speed = 1, silent = false } = {}) {
     this.silent = silent;
@@ -40,9 +44,9 @@ export class Voice {
     this._startWaiters = [];
     this.clips = new Map(); // clip url → Promise<blob: url | null>, clips held in memory (prepare)
     this._loading = new AbortController(); // fetches for the current language
-    this._queue = []; // clips to warm in the background (preload)
-    this._warm = new Set(); // ...and those already warmed
+    this._queue = []; // clips to fetch in the background (preload)
     this._workers = 0;
+    this.kbps = 0; // measured download speed of the clips (0 — not measured yet)
     this._urgent = 0; // fetches someone is waiting for (prepare, a line streaming now)
     this._calmWaiters = [];
   }
@@ -154,18 +158,36 @@ export class Voice {
     return Promise.all([lane(), lane()]);
   }
 
-  _clip(url) {
+  // A clip into memory (a blob: url). `urgent` — someone is waiting for it (background
+  // preloading gives way); otherwise it is the background preloading itself.
+  _clip(url, { urgent = true } = {}) {
     let p = this.clips.get(url);
     if (!p) {
+      const t0 = performance.now();
       p = fetch(url, { signal: this._loading.signal })
         .then((r) => (r.ok ? r.blob() : null))
-        .then((b) => b && URL.createObjectURL(b))
+        .then((b) => b && (this._measure(b.size, performance.now() - t0), URL.createObjectURL(b)))
         .catch(() => null);
       p.then((u) => u || this.clips.delete(url)); // a failed or cancelled one may be tried again
       this.clips.set(url, p);
-      this.urgent(p);
     }
+    if (urgent) this.urgent(p);
     return p;
+  }
+
+  // The connection's speed, from the clips themselves (a smoothed average, kbit/s).
+  _measure(bytes, ms) {
+    if (bytes < 8000 || ms <= 0) return; // too small to tell anything but latency
+    const kbps = (bytes * 8) / ms;
+    this.kbps = this.kbps ? this.kbps * 0.7 + kbps * 0.3 : kbps;
+  }
+
+  // Is the connection slow enough for a pause to be expected (and worth showing)? Measured from
+  // the clips; before any is measured — the browser's own estimate, where it gives one.
+  slow() {
+    if (this.kbps) return this.kbps < SLOW_KBPS;
+    const c = navigator.connection;
+    return !!c && (/2g|3g/.test(c.effectiveType || '') || (c.downlink > 0 && c.downlink * 1000 < SLOW_KBPS));
   }
 
   // Warm the browser cache with every clip of a namespace (for this age), so Lumo answers
@@ -183,7 +205,7 @@ export class Voice {
     ids.sort((a, b) => rank(a) - rank(b)); // stable: variants keep their order
     const want = new Set(this._urls((id) => id.startsWith(`${ns}:`), age));
     const files = [...new Set(ids.map((id) => `audio/${this.manifestLang}/${this.manifest[id]}`))].filter(
-      (u) => want.has(u) && !this.clips.has(u) && !this._warm.has(u),
+      (u) => want.has(u) && !this.clips.has(u),
     );
     const fresh = new Set(files);
     this._queue = [...files, ...this._queue.filter((u) => !fresh.has(u))];
@@ -197,9 +219,7 @@ export class Voice {
     while (this._queue.length) {
       await this._calm();
       const u = this._queue.shift();
-      if (!u || this.clips.has(u) || this._warm.has(u)) continue;
-      const ok = await fetch(u, { signal: this._loading.signal }).then((r) => r.ok, () => false);
-      if (ok) this._warm.add(u);
+      if (u && !this.clips.has(u)) await this._clip(u, { urgent: false });
     }
   }
 
@@ -288,8 +308,11 @@ export class Voice {
         resolve(ok);
       };
       this._interrupt = () => done(true);
-      // A clip being fetched into memory: wait for it (a second request would only compete with it).
-      Promise.race([this.clips.get(url), sleep(CLIP_WAIT)]).then((blob) => {
+      // A clip being fetched into memory: wait for it (a second request would only compete with
+      // it) — and it is urgent now, even if it began as background preloading.
+      const clip = this.clips.get(url);
+      if (clip) this.urgent(clip);
+      Promise.race([clip, sleep(CLIP_WAIT)]).then((blob) => {
         if (over) return;
         a.onended = () => done(true);
         a.onerror = () => done(false);

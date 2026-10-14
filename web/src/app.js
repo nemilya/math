@@ -51,17 +51,33 @@ const refreshCC = () => {
 };
 
 // Lumo "thinks" (a thought bubble) while something he needs is still on its way — a line, an
-// adventure — but only after a noticeable moment: a quick load shows nothing, so no flicker.
-const PONDER_AFTER = 500;
-const waits = new Map(); // what he waits for → its timer, or true once the bubble is shown
+// adventure. Only on a slow connection, where such pauses are real and long; and never as a
+// flicker: it appears after a clear pause and, once shown, stays a moment before fading (a
+// bubble that blinks looks stranger than the pause itself).
+const PONDER_AFTER = 700;
+const PONDER_MIN = 800;
+const waits = new Map(); // what he waits for → its timer, or true once it showed the bubble
+let shownAt = 0;
+let hideTimer = 0;
 function waitFor(what, on) {
   if (on === waits.has(what)) return;
   if (on) {
-    waits.set(what, setTimeout(() => (waits.set(what, true), keeper.ponder(true)), PONDER_AFTER));
+    const t = setTimeout(() => {
+      if (!voice.slow()) return;
+      waits.set(what, true);
+      clearTimeout(hideTimer);
+      if (!shownAt) {
+        shownAt = performance.now();
+        keeper.ponder(true);
+      }
+    }, PONDER_AFTER);
+    waits.set(what, t);
   } else {
     clearTimeout(waits.get(what));
     waits.delete(what);
-    if (![...waits.values()].includes(true)) keeper.ponder(false);
+    if (!shownAt || [...waits.values()].includes(true)) return;
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => ((shownAt = 0), keeper.ponder(false)), Math.max(0, shownAt + PONDER_MIN - performance.now()));
   }
 }
 
