@@ -38,6 +38,7 @@ const voice = new Voice({ speed, silent: fast });
 let ctl = null;
 let screen = 'start';
 let needSubtitles = false;
+let langReady = Promise.resolve();
 
 // ---------- chrome ----------
 
@@ -46,11 +47,12 @@ $('btn-settings').innerHTML = icons.gear;
 
 const subtitlesOn = () => store.data.cc || needSubtitles || fast;
 const refreshCC = () => {
-  subtitle.hidden = !(subtitlesOn() && voice.speaking && voice.current);
+  subtitle.hidden = !(subtitlesOn() && voice.audible && voice.current);
 };
 
-voice.on((speaking, text) => {
-  keeper.setTalking(speaking);
+// Mouth and subtitles follow the sound itself: if a clip is still loading, Lumo waits quietly.
+voice.on((speaking, text, audible) => {
+  keeper.setTalking(audible);
   subtitle.textContent = text;
   refreshCC();
 });
@@ -117,16 +119,30 @@ $('langs').addEventListener('click', async (e) => {
   if (screen !== 'start') goSky();
 });
 
-async function setLang(lang) {
+function setLang(lang) {
   document.documentElement.lang = lang;
   i18n.lang = lang;
   drawLangs();
-  await Promise.all([i18n.load('common'), i18n.load('sky'), voice.setLang(lang)]);
-  voice.preload('common');
-  voice.preload('sky');
-  needSubtitles = !voice.hasVoice();
-  refreshCC();
+  langReady = (async () => {
+    await Promise.all([i18n.load('common'), i18n.load('sky'), voice.setLang(lang)]);
+    needSubtitles = !voice.hasVoice();
+    refreshCC();
+    // The first words come first — a new visitor's tap on the sleeping Lumo must be answered
+    // at once; only then the rest of the sky's and the common lines.
+    prepareFirstWords().then(() => {
+      if (i18n.lang !== lang) return;
+      voice.preload('common');
+      voice.preload('sky');
+    });
+  })();
+  return langReady;
 }
+
+// What Lumo says right after waking: "I dozed off... hi!" and the sky's greeting.
+const prepareFirstWords = () =>
+  voice.prepare(['common:wake', ...(store.data.greeted ? ['sky:back'] : ['sky:hello1', 'sky:hello2', 'sky:hello3'])], {
+    age: i18n.age,
+  });
 
 function drawBackground() {
   const bg = $('bg');
@@ -206,16 +222,21 @@ async function start() {
     await runSetup({ host: $('setup'), i18n, store, onLang: chooseLang });
     i18n.age = store.data.age;
     refreshCC();
+    // The language and the age may have just been chosen there (nothing to fetch if preselected).
+    langReady.then(prepareFirstWords);
     screen = 'start';
   }
   const wake = async () => {
     if (screen !== 'start') return;
     screen = 'waking';
     sfx.unlock();
+    voice.unlock();
     sfx.wake();
     keeper.sleep(false);
     keeper.glow();
-    // The very first speech must happen inside a user gesture on some browsers.
+    // The very first speech must happen inside a user gesture on some browsers — voice.unlock()
+    // above lets it start a moment later, once the chosen language's voice is here.
+    await langReady;
     const line = i18n.line('common:wake');
     const hello = voice.speak(line.text, { id: line.id });
     keeper.dock(true);
